@@ -20,9 +20,9 @@ export const productDefinitions: ProductDefinition[] = [
     category: "钢管类",
   },
   {
-    type: "square_tube",
-    name: "方矩管",
-    englishName: "Square / Rectangular Tube",
+    type: "galvanized_square_rectangular_tube",
+    name: "镀锌方矩管",
+    englishName: "Hot-Dip Galvanized Square / Rectangular Tube",
     category: "钢管类",
   },
   {

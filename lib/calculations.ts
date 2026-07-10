@@ -2,10 +2,12 @@ import {
   angleSteelSpecs,
   channelSteelSpecs,
   groovedFittingOptions,
-  squareTubeSpecs,
   type StandardSpec,
 } from "@/data/demo/steel-specs";
 import { findGalvanizedPipeReference } from "@/data/galvanized-pipe/galvanized-pipe-data";
+import { findGalvanizedSheetPipeReference } from "@/data/galvanized-sheet-pipe/galvanized-sheet-pipe-data";
+import { findBlackSteelPipeReference } from "@/data/black-steel-pipe/black-steel-pipe-data";
+import { findGalvanizedSquareRectangularTubeReference } from "@/data/galvanized-square-rectangular-tube/galvanized-square-rectangular-tube-data";
 import type {
   MaterialList,
   MaterialModule,
@@ -17,6 +19,7 @@ import type {
 
 export const CONTAINER_40HQ_TON = 27.5;
 const STEEL_DENSITY_FACTOR = 0.00785;
+const ROUND_CARBON_STEEL_PIPE_FACTOR = 0.02466;
 
 function findWeightFromSpec(
   specs: StandardSpec[],
@@ -78,7 +81,10 @@ export function calculateRow(row: MaterialRow): RowCalculation {
       };
     }
 
-    const unitWeightKg = STEEL_DENSITY_FACTOR * Math.PI * (outerDiameter - thickness) * thickness;
+    const unitWeightKg =
+      row.productType === "black_steel_pipe"
+        ? calculateRoundSteelPipeKgPerMeter(outerDiameter, thickness)
+        : STEEL_DENSITY_FACTOR * Math.PI * (outerDiameter - thickness) * thickness;
     const pieceWeightKg = unitWeightKg * row.lengthM;
 
     return {
@@ -91,7 +97,7 @@ export function calculateRow(row: MaterialRow): RowCalculation {
     };
   }
 
-  if (row.productType === "square_tube" && row.dimensionMode === "custom") {
+  if (row.productType === "galvanized_square_rectangular_tube" && row.dimensionMode === "custom") {
     const width = row.customWidthMm ?? 0;
     const height = row.customHeightMm ?? 0;
     const thickness = row.customThicknessMm ?? 0;
@@ -146,6 +152,58 @@ export function calculateRow(row: MaterialRow): RowCalculation {
       };
     }
 
+    if (row.productType === "galvanized_sheet_pipe") {
+      const reference = findGalvanizedSheetPipeReference(row.specId, row.thicknessId);
+
+      if (!reference) {
+        return {
+          rowId: row.id,
+          hasWeight: false,
+          unitWeightLabel: "kg/m",
+        };
+      }
+
+      const unitWeightKg =
+        reference.thickness.referenceWeightKgPerPiece / reference.spec.referenceLengthM;
+      const pieceWeightKg = reference.thickness.referenceWeightKgPerPiece;
+
+      return {
+        rowId: row.id,
+        hasWeight: true,
+        unitWeightKg,
+        unitWeightLabel: "kg/m",
+        pieceWeightKg,
+        totalWeightKg: pieceWeightKg * row.quantity,
+      };
+    }
+
+    if (row.productType === "black_steel_pipe") {
+      const reference = findBlackSteelPipeReference(row.specId, row.thicknessId);
+
+      if (!reference) {
+        return {
+          rowId: row.id,
+          hasWeight: false,
+          unitWeightLabel: "kg/m",
+        };
+      }
+
+      const unitWeightKg = calculateRoundSteelPipeKgPerMeter(
+        reference.spec.outerDiameterMm,
+        reference.thickness.thicknessMm,
+      );
+      const pieceWeightKg = unitWeightKg * reference.thickness.standardLengthM;
+
+      return {
+        rowId: row.id,
+        hasWeight: true,
+        unitWeightKg,
+        unitWeightLabel: "kg/m",
+        pieceWeightKg,
+        totalWeightKg: pieceWeightKg * row.quantity,
+      };
+    }
+
     return {
       rowId: row.id,
       hasWeight: false,
@@ -153,10 +211,33 @@ export function calculateRow(row: MaterialRow): RowCalculation {
     };
   }
 
+  if (row.productType === "galvanized_square_rectangular_tube") {
+    const reference = findGalvanizedSquareRectangularTubeReference(row.specId, row.thicknessId);
+
+    if (!reference) {
+      return {
+        rowId: row.id,
+        hasWeight: false,
+        unitWeightLabel: "kg/m",
+      };
+    }
+
+    const unitWeightKg =
+      reference.thickness.referenceWeightKgPerPiece / reference.spec.referenceLengthM;
+    const pieceWeightKg = reference.thickness.referenceWeightKgPerPiece;
+
+    return {
+      rowId: row.id,
+      hasWeight: true,
+      unitWeightKg,
+      unitWeightLabel: "kg/m",
+      pieceWeightKg,
+      totalWeightKg: pieceWeightKg * row.quantity,
+    };
+  }
+
   const specs =
-    row.productType === "square_tube"
-        ? squareTubeSpecs
-        : row.productType === "angle_steel"
+    row.productType === "angle_steel"
           ? angleSteelSpecs
           : null;
 
@@ -185,6 +266,10 @@ export function calculateRow(row: MaterialRow): RowCalculation {
     pieceWeightKg,
     totalWeightKg: pieceWeightKg * row.quantity,
   };
+}
+
+export function calculateRoundSteelPipeKgPerMeter(outerDiameterMm: number, thicknessMm: number) {
+  return ROUND_CARBON_STEEL_PIPE_FACTOR * thicknessMm * (outerDiameterMm - thicknessMm);
 }
 
 export function calculateModuleSubtotal(module: MaterialModule) {

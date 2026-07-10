@@ -1,1 +1,355 @@
-export const galvanizedSheetPipeData = [];
+export type GalvanizedSheetPipeThicknessOption = {
+  thicknessMm: number;
+  referenceWeightKgPerPiece: number;
+};
+
+export type GalvanizedSheetPipeSpec = {
+  id: string;
+  outerDiameterMm: number;
+  localSizeLabelZh: string | null;
+  piecesPerBundle: number;
+  referenceLengthM: 6;
+  thicknessOptions: GalvanizedSheetPipeThicknessOption[];
+};
+
+export const galvanizedSheetPipeData: GalvanizedSheetPipeSpec[] = [
+  {
+    id: "od16",
+    outerDiameterMm: 16,
+    localSizeLabelZh: "3分",
+    piecesPerBundle: 271,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 0.6, referenceWeightKgPerPiece: 1.38 },
+      { thicknessMm: 0.7, referenceWeightKgPerPiece: 1.75 },
+      { thicknessMm: 0.8, referenceWeightKgPerPiece: 1.9 },
+      { thicknessMm: 0.9, referenceWeightKgPerPiece: 2.0 },
+      { thicknessMm: 1.0, referenceWeightKgPerPiece: 2.2 },
+      { thicknessMm: 1.1, referenceWeightKgPerPiece: 2.4 },
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 2.6 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 2.8 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 3.0 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 3.2 },
+    ],
+  },
+  {
+    id: "od19",
+    outerDiameterMm: 19,
+    localSizeLabelZh: "4分",
+    piecesPerBundle: 169,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 0.6, referenceWeightKgPerPiece: 1.6 },
+      { thicknessMm: 0.7, referenceWeightKgPerPiece: 1.9 },
+      { thicknessMm: 0.8, referenceWeightKgPerPiece: 2.2 },
+      { thicknessMm: 0.9, referenceWeightKgPerPiece: 2.4 },
+      { thicknessMm: 1.0, referenceWeightKgPerPiece: 2.5 },
+      { thicknessMm: 1.1, referenceWeightKgPerPiece: 2.8 },
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 3.1 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 3.3 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 3.6 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 3.8 },
+      { thicknessMm: 1.6, referenceWeightKgPerPiece: 4.0 },
+      { thicknessMm: 1.7, referenceWeightKgPerPiece: 4.3 },
+      { thicknessMm: 1.8, referenceWeightKgPerPiece: 4.6 },
+      { thicknessMm: 1.9, referenceWeightKgPerPiece: 5.0 },
+    ],
+  },
+  {
+    id: "od25",
+    outerDiameterMm: 25,
+    localSizeLabelZh: "6分",
+    piecesPerBundle: 127,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 0.7, referenceWeightKgPerPiece: 2.6 },
+      { thicknessMm: 0.8, referenceWeightKgPerPiece: 2.9 },
+      { thicknessMm: 0.9, referenceWeightKgPerPiece: 3.2 },
+      { thicknessMm: 1.0, referenceWeightKgPerPiece: 3.3 },
+      { thicknessMm: 1.1, referenceWeightKgPerPiece: 3.7 },
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 4.0 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 4.4 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 4.7 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 5.1 },
+      { thicknessMm: 1.6, referenceWeightKgPerPiece: 5.4 },
+      { thicknessMm: 1.7, referenceWeightKgPerPiece: 5.7 },
+      { thicknessMm: 1.8, referenceWeightKgPerPiece: 6.1 },
+      { thicknessMm: 1.9, referenceWeightKgPerPiece: 6.8 },
+    ],
+  },
+  {
+    id: "od28",
+    outerDiameterMm: 28,
+    localSizeLabelZh: null,
+    piecesPerBundle: 91,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 0.8, referenceWeightKgPerPiece: 3.3 },
+      { thicknessMm: 0.9, referenceWeightKgPerPiece: 3.46 },
+      { thicknessMm: 1.0, referenceWeightKgPerPiece: 3.79 },
+      { thicknessMm: 1.1, referenceWeightKgPerPiece: 4.2 },
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 4.61 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 5.02 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 5.44 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 5.8 },
+    ],
+  },
+  {
+    id: "od32",
+    outerDiameterMm: 32,
+    localSizeLabelZh: "1寸",
+    piecesPerBundle: 91,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 0.7, referenceWeightKgPerPiece: 3.0 },
+      { thicknessMm: 0.8, referenceWeightKgPerPiece: 3.6 },
+      { thicknessMm: 0.9, referenceWeightKgPerPiece: 3.9 },
+      { thicknessMm: 1.0, referenceWeightKgPerPiece: 4.3 },
+      { thicknessMm: 1.1, referenceWeightKgPerPiece: 4.7 },
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 5.2 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 5.7 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 6.0 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 6.5 },
+      { thicknessMm: 1.6, referenceWeightKgPerPiece: 6.9 },
+      { thicknessMm: 1.7, referenceWeightKgPerPiece: 7.4 },
+      { thicknessMm: 1.8, referenceWeightKgPerPiece: 7.9 },
+      { thicknessMm: 1.9, referenceWeightKgPerPiece: 8.7 },
+      { thicknessMm: 2.5, referenceWeightKgPerPiece: 12.0 },
+    ],
+  },
+  {
+    id: "od38",
+    outerDiameterMm: 38,
+    localSizeLabelZh: null,
+    piecesPerBundle: 91,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 0.8, referenceWeightKgPerPiece: 4.2 },
+      { thicknessMm: 0.9, referenceWeightKgPerPiece: 4.7 },
+      { thicknessMm: 1.0, referenceWeightKgPerPiece: 5.17 },
+      { thicknessMm: 1.1, referenceWeightKgPerPiece: 5.7 },
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 6.2 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 6.7 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 7.55 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 7.9 },
+      { thicknessMm: 1.7, referenceWeightKgPerPiece: 9.0 },
+      { thicknessMm: 1.9, referenceWeightKgPerPiece: 10.1 },
+    ],
+  },
+  {
+    id: "od42",
+    outerDiameterMm: 42,
+    localSizeLabelZh: "1寸2",
+    piecesPerBundle: 91,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 0.8, referenceWeightKgPerPiece: 4.75 },
+      { thicknessMm: 0.9, referenceWeightKgPerPiece: 5.2 },
+      { thicknessMm: 1.0, referenceWeightKgPerPiece: 5.7 },
+      { thicknessMm: 1.1, referenceWeightKgPerPiece: 6.3 },
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 6.7 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 7.3 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 8.0 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 8.5 },
+      { thicknessMm: 1.6, referenceWeightKgPerPiece: 9.2 },
+      { thicknessMm: 1.7, referenceWeightKgPerPiece: 9.8 },
+      { thicknessMm: 1.8, referenceWeightKgPerPiece: 10.4 },
+      { thicknessMm: 1.9, referenceWeightKgPerPiece: 11.3 },
+      { thicknessMm: 2.0, referenceWeightKgPerPiece: 11.3 },
+    ],
+  },
+  {
+    id: "od48",
+    outerDiameterMm: 48,
+    localSizeLabelZh: "1寸半",
+    piecesPerBundle: 61,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 0.7, referenceWeightKgPerPiece: 4.8 },
+      { thicknessMm: 0.8, referenceWeightKgPerPiece: 5.5 },
+      { thicknessMm: 0.9, referenceWeightKgPerPiece: 6.0 },
+      { thicknessMm: 1.0, referenceWeightKgPerPiece: 6.4 },
+      { thicknessMm: 1.1, referenceWeightKgPerPiece: 7.2 },
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 8.0 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 8.6 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 9.3 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 9.8 },
+      { thicknessMm: 1.6, referenceWeightKgPerPiece: 10.5 },
+      { thicknessMm: 1.7, referenceWeightKgPerPiece: 11.3 },
+      { thicknessMm: 1.8, referenceWeightKgPerPiece: 12.1 },
+      { thicknessMm: 1.9, referenceWeightKgPerPiece: 12.9 },
+      { thicknessMm: 2.1, referenceWeightKgPerPiece: 13.9 },
+    ],
+  },
+  {
+    id: "od58",
+    outerDiameterMm: 58,
+    localSizeLabelZh: "2寸",
+    piecesPerBundle: 61,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 0.9, referenceWeightKgPerPiece: 7.2 },
+      { thicknessMm: 1.0, referenceWeightKgPerPiece: 8.3 },
+      { thicknessMm: 1.1, referenceWeightKgPerPiece: 8.9 },
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 9.7 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 10.4 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 11.5 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 12.0 },
+      { thicknessMm: 1.6, referenceWeightKgPerPiece: 13.1 },
+      { thicknessMm: 1.7, referenceWeightKgPerPiece: 13.8 },
+      { thicknessMm: 1.8, referenceWeightKgPerPiece: 14.5 },
+      { thicknessMm: 1.9, referenceWeightKgPerPiece: 15.67 },
+    ],
+  },
+  {
+    id: "od76",
+    outerDiameterMm: 76,
+    localSizeLabelZh: "2寸半",
+    piecesPerBundle: 37,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 0.9, referenceWeightKgPerPiece: 9.3 },
+      { thicknessMm: 1.0, referenceWeightKgPerPiece: 10.5 },
+      { thicknessMm: 1.1, referenceWeightKgPerPiece: 11.6 },
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 12.7 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 13.8 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 15.0 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 16.0 },
+      { thicknessMm: 1.6, referenceWeightKgPerPiece: 16.9 },
+      { thicknessMm: 1.7, referenceWeightKgPerPiece: 18.1 },
+      { thicknessMm: 1.8, referenceWeightKgPerPiece: 19.6 },
+      { thicknessMm: 1.9, referenceWeightKgPerPiece: 20.8 },
+      { thicknessMm: 2.5, referenceWeightKgPerPiece: 26.6 },
+    ],
+  },
+  {
+    id: "od89",
+    outerDiameterMm: 89,
+    localSizeLabelZh: "3寸",
+    piecesPerBundle: 19,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 1.0, referenceWeightKgPerPiece: 12.4 },
+      { thicknessMm: 1.1, referenceWeightKgPerPiece: 13.1 },
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 15.0 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 16.0 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 17.6 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 18.5 },
+      { thicknessMm: 1.6, referenceWeightKgPerPiece: 19.49 },
+      { thicknessMm: 1.7, referenceWeightKgPerPiece: 20.77 },
+      { thicknessMm: 1.8, referenceWeightKgPerPiece: 23.0 },
+      { thicknessMm: 1.9, referenceWeightKgPerPiece: 24.0 },
+      { thicknessMm: 2.5, referenceWeightKgPerPiece: 31.0 },
+    ],
+  },
+  {
+    id: "od114",
+    outerDiameterMm: 114,
+    localSizeLabelZh: "4寸",
+    piecesPerBundle: 19,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 1.0, referenceWeightKgPerPiece: 16.0 },
+      { thicknessMm: 1.1, referenceWeightKgPerPiece: 17.3 },
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 19.0 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 21.0 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 22.5 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 23.8 },
+      { thicknessMm: 1.6, referenceWeightKgPerPiece: 25.5 },
+      { thicknessMm: 1.7, referenceWeightKgPerPiece: 27.0 },
+      { thicknessMm: 1.8, referenceWeightKgPerPiece: 29.2 },
+      { thicknessMm: 1.9, referenceWeightKgPerPiece: 31.3 },
+      { thicknessMm: 2.5, referenceWeightKgPerPiece: 40.7 },
+    ],
+  },
+  {
+    id: "od134",
+    outerDiameterMm: 134,
+    localSizeLabelZh: null,
+    piecesPerBundle: 14,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 22.1 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 24.2 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 27.85 },
+      { thicknessMm: 1.9, referenceWeightKgPerPiece: 37.59 },
+    ],
+  },
+  {
+    id: "od138",
+    outerDiameterMm: 138,
+    localSizeLabelZh: "5寸",
+    piecesPerBundle: 14,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 1.1, referenceWeightKgPerPiece: 22.0 },
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 23.7 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 25.0 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 27.3 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 29.3 },
+      { thicknessMm: 1.6, referenceWeightKgPerPiece: 31.4 },
+      { thicknessMm: 1.7, referenceWeightKgPerPiece: 32.9 },
+      { thicknessMm: 1.8, referenceWeightKgPerPiece: 35.4 },
+      { thicknessMm: 1.9, referenceWeightKgPerPiece: 38.5 },
+    ],
+  },
+  {
+    id: "od160",
+    outerDiameterMm: 160,
+    localSizeLabelZh: null,
+    piecesPerBundle: 10,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 26.3 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 28.8 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 31.1 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 33.3 },
+      { thicknessMm: 1.7, referenceWeightKgPerPiece: 38.2 },
+      { thicknessMm: 1.9, referenceWeightKgPerPiece: 44.0 },
+    ],
+  },
+  {
+    id: "od164",
+    outerDiameterMm: 164,
+    localSizeLabelZh: "6寸",
+    piecesPerBundle: 10,
+    referenceLengthM: 6,
+    thicknessOptions: [
+      { thicknessMm: 1.1, referenceWeightKgPerPiece: 26.0 },
+      { thicknessMm: 1.2, referenceWeightKgPerPiece: 27.33 },
+      { thicknessMm: 1.3, referenceWeightKgPerPiece: 29.5 },
+      { thicknessMm: 1.4, referenceWeightKgPerPiece: 32.0 },
+      { thicknessMm: 1.5, referenceWeightKgPerPiece: 34.0 },
+      { thicknessMm: 1.6, referenceWeightKgPerPiece: 36.0 },
+      { thicknessMm: 1.7, referenceWeightKgPerPiece: 39.77 },
+      { thicknessMm: 1.8, referenceWeightKgPerPiece: 41.2 },
+      { thicknessMm: 1.9, referenceWeightKgPerPiece: 46.36 },
+      { thicknessMm: 2.0, referenceWeightKgPerPiece: 48.32 },
+    ],
+  },
+];
+
+export function getGalvanizedSheetPipeSpecLabel(spec: GalvanizedSheetPipeSpec) {
+  return [spec.localSizeLabelZh, `Φ${spec.outerDiameterMm}`].filter(Boolean).join(" / ");
+}
+
+export function getGalvanizedSheetPipeThicknessId(thicknessMm: number) {
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 2,
+    useGrouping: false,
+  }).format(thicknessMm);
+}
+
+export function getGalvanizedSheetPipeThicknessLabel(thicknessMm: number) {
+  return `${getGalvanizedSheetPipeThicknessId(thicknessMm)}mm`;
+}
+
+export function findGalvanizedSheetPipeReference(specId: string, thicknessId: string) {
+  const spec = galvanizedSheetPipeData.find((item) => item.id === specId);
+  const thickness = spec?.thicknessOptions.find(
+    (item) => getGalvanizedSheetPipeThicknessId(item.thicknessMm) === thicknessId,
+  );
+
+  return spec && thickness ? { spec, thickness } : null;
+}

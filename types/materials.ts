@@ -2,7 +2,7 @@ export type ProductType =
   | "galvanized_pipe"
   | "galvanized_sheet_pipe"
   | "black_steel_pipe"
-  | "square_tube"
+  | "galvanized_square_rectangular_tube"
   | "angle_steel"
   | "channel_steel"
   | "grooved_fitting";
@@ -38,7 +38,7 @@ export type SteelPipeRow = {
 
 export type SquareTubeRow = {
   id: string;
-  productType: "square_tube";
+  productType: "galvanized_square_rectangular_tube";
   dimensionMode: DimensionMode;
   specId: string;
   thicknessId: string;

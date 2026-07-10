@@ -6,22 +6,46 @@ import {
   angleSteelSpecs,
   channelSteelSpecs,
   groovedFittingOptions,
-  squareTubeSpecs,
   type StandardSpec,
 } from "@/data/demo/steel-specs";
 import {
   galvanizedPipeData,
-  getGalvanizedPipeSpecLabel,
   getGalvanizedPipeThicknessId,
-  getGalvanizedPipeThicknessLabel,
 } from "@/data/galvanized-pipe/galvanized-pipe-data";
+import {
+  blackSteelPipeData,
+  getBlackSteelPipeThicknessId,
+} from "@/data/black-steel-pipe/black-steel-pipe-data";
+import {
+  galvanizedSheetPipeData,
+  getGalvanizedSheetPipeThicknessId,
+} from "@/data/galvanized-sheet-pipe/galvanized-sheet-pipe-data";
+import {
+  galvanizedSquareRectangularTubeData,
+  getGalvanizedSquareRectangularTubeThicknessId,
+} from "@/data/galvanized-square-rectangular-tube/galvanized-square-rectangular-tube-data";
+import { isLocale, messages, type Locale, type Messages } from "@/i18n";
 import {
   calculateModuleSubtotal,
   calculateRow,
   calculateSummary,
   CONTAINER_40HQ_TON,
 } from "@/lib/calculations";
-import { formatKg, formatNumber, formatTonFromKg } from "@/lib/format";
+import {
+  formatKg,
+  formatLength,
+  formatNumber,
+  formatQuantity,
+  formatTonFromKg,
+  formatUnitWeightLabel,
+} from "@/lib/format";
+import {
+  formatGalvanizedPipeSpec,
+  formatGalvanizedSheetPipeSpec,
+  formatBlackSteelPipeSpec,
+  formatGalvanizedSquareRectangularTubeSpec,
+  formatThicknessValue,
+} from "@/lib/spec-formatters";
 import type {
   MaterialList,
   MaterialModule,
@@ -31,6 +55,7 @@ import type {
 } from "@/types/materials";
 
 const STORAGE_KEY = "canhope-steel-calculator-material-list";
+const LOCALE_STORAGE_KEY = "steel-calculator-locale";
 
 const categories = ["钢管类", "型钢类", "消防配件"] as const;
 
@@ -78,7 +103,7 @@ function createEmptyRow(productType: ProductType): MaterialRow {
     };
   }
 
-  if (productType === "square_tube") {
+  if (productType === "galvanized_square_rectangular_tube") {
     return {
       id,
       productType,
@@ -125,7 +150,7 @@ function createEmptyRow(productType: ProductType): MaterialRow {
   };
 }
 
-function createCustomRow(productType: SteelPipeProductType | "square_tube"): MaterialRow {
+function createCustomRow(productType: SteelPipeProductType | "galvanized_square_rectangular_tube"): MaterialRow {
   const id = createId("row");
 
   if (isSteelPipeProduct(productType)) {
@@ -158,8 +183,20 @@ function createCustomRow(productType: SteelPipeProductType | "square_tube"): Mat
   };
 }
 
-function productName(type: ProductType) {
-  return productDefinitions.find((product) => product.type === type)?.name ?? type;
+function productName(type: ProductType, m: Messages) {
+  return m.products[type];
+}
+
+function categoryName(category: (typeof categories)[number], m: Messages) {
+  if (category === "钢管类") {
+    return m.productCategories.steelPipe;
+  }
+
+  if (category === "型钢类") {
+    return m.productCategories.structuralSteel;
+  }
+
+  return m.productCategories.fireFittings;
 }
 
 function getSpecLabel(specs: StandardSpec[], specId: string) {
@@ -174,54 +211,131 @@ function getThicknessLabel(specs: StandardSpec[], specId: string, thicknessId: s
   );
 }
 
-function getGalvanizedPipeSelectedSpecLabel(specId: string) {
+function getGalvanizedPipeSelectedSpecLabel(specId: string, locale: Locale) {
   const spec = galvanizedPipeData.find((item) => item.id === specId);
-  return spec ? getGalvanizedPipeSpecLabel(spec) : "";
+  return spec ? formatGalvanizedPipeSpec(spec, locale) : "";
 }
 
-function getGalvanizedPipeSelectedThicknessLabel(specId: string, thicknessId: string) {
+function getGalvanizedPipeSelectedThicknessLabel(specId: string, thicknessId: string, locale: Locale) {
   const spec = galvanizedPipeData.find((item) => item.id === specId);
   const thickness = spec?.thicknessOptions.find(
     (item) => getGalvanizedPipeThicknessId(item.thicknessMm) === thicknessId,
   );
 
-  return thickness ? getGalvanizedPipeThicknessLabel(thickness.thicknessMm) : "";
+  return thickness ? formatThicknessValue(thickness.thicknessMm, locale) : "";
 }
 
-function isStandardGalvanizedPipeRow(row: MaterialRow) {
-  return row.productType === "galvanized_pipe" && row.dimensionMode !== "custom";
+function getGalvanizedSheetPipeSelectedSpecLabel(specId: string, locale: Locale) {
+  const spec = galvanizedSheetPipeData.find((item) => item.id === specId);
+  return spec ? formatGalvanizedSheetPipeSpec(spec, locale) : "";
 }
 
-function getRowDescription(row: MaterialRow) {
+function getGalvanizedSheetPipeSelectedThicknessLabel(specId: string, thicknessId: string, locale: Locale) {
+  const spec = galvanizedSheetPipeData.find((item) => item.id === specId);
+  const thickness = spec?.thicknessOptions.find(
+    (item) => getGalvanizedSheetPipeThicknessId(item.thicknessMm) === thicknessId,
+  );
+
+  return thickness ? formatThicknessValue(thickness.thicknessMm, locale) : "";
+}
+
+function getBlackSteelPipeSelectedSpecLabel(specId: string, locale: Locale) {
+  const spec = blackSteelPipeData.find((item) => item.id === specId);
+  return spec ? formatBlackSteelPipeSpec(spec, locale) : "";
+}
+
+function getBlackSteelPipeSelectedThicknessLabel(specId: string, thicknessId: string, locale: Locale) {
+  const spec = blackSteelPipeData.find((item) => item.id === specId);
+  const thickness = spec?.thicknessOptions.find(
+    (item) => getBlackSteelPipeThicknessId(item.thicknessMm) === thicknessId,
+  );
+
+  return thickness ? formatThicknessValue(thickness.thicknessMm, locale) : "";
+}
+
+function getGalvanizedSquareRectangularTubeSelectedSpecLabel(specId: string) {
+  const spec = galvanizedSquareRectangularTubeData.find((item) => item.id === specId);
+  return spec ? formatGalvanizedSquareRectangularTubeSpec(spec) : "";
+}
+
+function getGalvanizedSquareRectangularTubeSelectedThicknessLabel(
+  specId: string,
+  thicknessId: string,
+  locale: Locale,
+) {
+  const spec = galvanizedSquareRectangularTubeData.find((item) => item.id === specId);
+  const thickness = spec?.thicknessOptions.find(
+    (item) => getGalvanizedSquareRectangularTubeThicknessId(item.thicknessMm) === thicknessId,
+  );
+
+  return thickness ? formatThicknessValue(thickness.thicknessMm, locale) : "";
+}
+
+function getStandardSteelPipeLengthM(row: MaterialRow) {
+  if (row.productType === "black_steel_pipe" && row.dimensionMode !== "custom") {
+    const spec = blackSteelPipeData.find((item) => item.id === row.specId);
+    const thickness = spec?.thicknessOptions.find(
+      (item) => getBlackSteelPipeThicknessId(item.thicknessMm) === row.thicknessId,
+    );
+
+    return thickness?.standardLengthM ?? 6;
+  }
+
+  return 6;
+}
+
+function isFixedLengthStandardSteelPipeRow(row: MaterialRow) {
+  return (
+    (row.productType === "galvanized_pipe" ||
+      row.productType === "galvanized_sheet_pipe" ||
+      row.productType === "black_steel_pipe" ||
+      row.productType === "galvanized_square_rectangular_tube") &&
+    row.dimensionMode !== "custom"
+  );
+}
+
+function getDisplayLengthM(row: Exclude<MaterialRow, { productType: "grooved_fitting" }>) {
+  return isFixedLengthStandardSteelPipeRow(row) ? getStandardSteelPipeLengthM(row) : row.lengthM;
+}
+
+function getRowDescription(row: MaterialRow, locale: Locale, m: Messages) {
   if (isSteelPipeProduct(row.productType)) {
     if (row.dimensionMode === "custom") {
-      return `自定义${productName(row.productType)} / 外径 ${row.customOuterDiameterMm || 0}mm / 壁厚 ${
-        row.customThicknessMm || 0
-      }mm`;
+      return `${m.customSize.customSpec} ${productName(row.productType, m)} / ${m.fields.outerDiameter} ${
+        row.customOuterDiameterMm || 0
+      } ${locale === "zh" ? "mm" : "mm"} / ${m.fields.thickness} ${formatThicknessValue(row.customThicknessMm || 0, locale)}`;
     }
 
     return [
       row.productType === "galvanized_pipe"
-        ? getGalvanizedPipeSelectedSpecLabel(row.specId)
-        : row.specId,
+        ? getGalvanizedPipeSelectedSpecLabel(row.specId, locale)
+        : row.productType === "galvanized_sheet_pipe"
+          ? getGalvanizedSheetPipeSelectedSpecLabel(row.specId, locale)
+          : row.productType === "black_steel_pipe"
+            ? getBlackSteelPipeSelectedSpecLabel(row.specId, locale)
+            : row.specId,
       row.productType === "galvanized_pipe"
-        ? getGalvanizedPipeSelectedThicknessLabel(row.specId, row.thicknessId)
-        : row.thicknessId,
+        ? getGalvanizedPipeSelectedThicknessLabel(row.specId, row.thicknessId, locale)
+        : row.productType === "galvanized_sheet_pipe"
+          ? getGalvanizedSheetPipeSelectedThicknessLabel(row.specId, row.thicknessId, locale)
+          : row.productType === "black_steel_pipe"
+            ? getBlackSteelPipeSelectedThicknessLabel(row.specId, row.thicknessId, locale)
+            : row.thicknessId,
     ]
       .filter(Boolean)
       .join(" / ");
   }
 
-  if (row.productType === "square_tube") {
+  if (row.productType === "galvanized_square_rectangular_tube") {
     if (row.dimensionMode === "custom") {
-      return `自定义方矩管 / ${row.customWidthMm || 0}×${row.customHeightMm || 0}mm / 壁厚 ${
-        row.customThicknessMm || 0
-      }mm`;
+      return `${m.customSize.customSpec} ${productName(row.productType, m)} / ${row.customWidthMm || 0}×${
+        row.customHeightMm || 0
+      } mm / ${m.fields.thickness} ${formatThicknessValue(row.customThicknessMm || 0, locale)}`;
     }
 
     return [
-      getSpecLabel(squareTubeSpecs, row.specId),
-      getThicknessLabel(squareTubeSpecs, row.specId, row.thicknessId),
+      getGalvanizedSquareRectangularTubeSelectedSpecLabel(row.specId),
+      getGalvanizedSquareRectangularTubeSelectedThicknessLabel(row.specId, row.thicknessId, locale),
     ]
       .filter(Boolean)
       .join(" / ");
@@ -260,23 +374,63 @@ function uniqueBy<T>(items: T[], key: (item: T) => string) {
 
 function normalizeStoredMaterialList(value: MaterialList): MaterialList {
   return {
-    modules: value.modules.map((module) => ({
+    modules: value.modules.map((module) => {
+      const productType =
+        (module.productType as string) === "square_tube"
+          ? "galvanized_square_rectangular_tube"
+          : module.productType;
+
+      return {
       ...module,
+      productType,
       rows: module.rows.map((row) => {
         const normalizedRow =
           row.productType === "round_pipe"
             ? ({ ...row, productType: "galvanized_pipe" } as MaterialRow)
+            : (row.productType as string) === "square_tube"
+              ? ({ ...row, productType: "galvanized_square_rectangular_tube" } as MaterialRow)
             : row;
 
-        if (isSteelPipeProduct(normalizedRow.productType) || normalizedRow.productType === "square_tube") {
+        if (
+          isSteelPipeProduct(normalizedRow.productType) ||
+          normalizedRow.productType === "galvanized_square_rectangular_tube"
+        ) {
           const lengthM = Number.isFinite(normalizedRow.lengthM) ? normalizedRow.lengthM : 6;
+          const dimensionMode = normalizedRow.dimensionMode ?? "standard";
+
+          if (
+            normalizedRow.productType === "galvanized_square_rectangular_tube" &&
+            dimensionMode === "standard"
+          ) {
+            const firstSpec = galvanizedSquareRectangularTubeData[0];
+            const matchingSpec =
+              galvanizedSquareRectangularTubeData.find((spec) => spec.id === normalizedRow.specId) ??
+              firstSpec;
+            const matchingThickness = matchingSpec?.thicknessOptions.find(
+              (thickness) =>
+                getGalvanizedSquareRectangularTubeThicknessId(thickness.thicknessMm) ===
+                normalizedRow.thicknessId,
+            ) ?? matchingSpec?.thicknessOptions[0];
+
+            return {
+              ...normalizedRow,
+              dimensionMode,
+              specId: matchingSpec?.id ?? "",
+              thicknessId: matchingThickness
+                ? getGalvanizedSquareRectangularTubeThicknessId(matchingThickness.thicknessMm)
+                : "",
+              lengthM: 6,
+              quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
+            };
+          }
 
           return {
             ...normalizedRow,
-            dimensionMode: normalizedRow.dimensionMode ?? "standard",
+            dimensionMode,
             lengthM:
-              normalizedRow.productType === "galvanized_pipe" &&
-              (normalizedRow.dimensionMode ?? "standard") === "standard"
+              (normalizedRow.productType === "galvanized_pipe" ||
+                normalizedRow.productType === "galvanized_sheet_pipe") &&
+              dimensionMode === "standard"
                 ? 6
                 : lengthM,
             quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
@@ -288,11 +442,13 @@ function normalizeStoredMaterialList(value: MaterialList): MaterialList {
           quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
         };
       }),
-    })),
+    };
+    }),
   };
 }
 
 export default function Home() {
+  const [locale, setLocale] = useState<Locale>("zh");
   const [materialList, setMaterialList] = useState<MaterialList>(() => {
     if (typeof window === "undefined") {
       return { modules: [] };
@@ -310,6 +466,7 @@ export default function Home() {
       return { modules: [] };
     }
   });
+  const m = messages[locale];
   const [activeProduct, setActiveProduct] = useState<ProductType | null>(null);
   const [isRfqOpen, setIsRfqOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -328,52 +485,111 @@ export default function Home() {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(materialList));
   }, [materialList]);
 
+  useEffect(() => {
+    const savedLocale = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+    if (isLocale(savedLocale)) {
+      window.setTimeout(() => setLocale(savedLocale), 0);
+    }
+  }, []);
+
+  function switchLocale(nextLocale: Locale) {
+    setLocale(nextLocale);
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, nextLocale);
+  }
+
   const summary = useMemo(() => calculateSummary(materialList), [materialList]);
 
   const rfqText = useMemo(() => {
+    if (locale === "en") {
+      const lines = [
+        m.inquiry.rfqHeader,
+        "",
+        `${m.inquiry.customerName}: ${customer.name || "-"}`,
+        `${m.inquiry.companyName}: ${customer.company || "-"}`,
+        `${m.inquiry.country}: ${customer.country || "-"}`,
+        `${m.inquiry.whatsapp}: ${customer.whatsapp || "-"}`,
+        `${m.inquiry.email}: ${customer.email || "-"}`,
+        `${m.inquiry.destinationPort}: ${customer.port || "-"}`,
+        "",
+        `${m.inquiry.listTitle}:`,
+      ];
+
+      materialList.modules.forEach((module) => {
+        lines.push(`\n${productName(module.productType, m)}`);
+        module.rows.forEach((row, index) => {
+          const calc = calculateRow(row);
+          const description = getRowDescription(row, locale, m) || m.materialList.specPending;
+          lines.push(`${index + 1}. ${description}`);
+          if ("lengthM" in row) {
+            lines.push(`${m.fields.length}: ${formatLength(getDisplayLengthM(row), locale)}`);
+          }
+          lines.push(`${m.fields.quantity}: ${formatQuantity(row.quantity, row.quantityUnit, locale)}`);
+          lines.push(
+            `${m.fields.totalWeight}: ${
+              calc.hasWeight ? formatTonFromKg(calc.totalWeightKg, locale, m.notices.weightPending) : m.notices.weightPending
+            }`,
+          );
+        });
+      });
+
+      lines.push("");
+      lines.push(`${m.summary.theoreticalWeight}: ${formatTonFromKg(summary.totalWeightKg, locale, m.notices.weightPending)}`);
+      lines.push(`${m.summary.containerEstimate}: ${summary.containerCount} × 40HQ`);
+      if (summary.missingWeightRowCount > 0) {
+        lines.push(`${m.summary.missingWeight}: ${summary.missingWeightRowCount} ${m.summary.missingRowsSuffix}`);
+      }
+      lines.push(`${m.inquiry.destinationPort}: ${customer.port || "-"}`);
+      lines.push(`${m.inquiry.notes}: ${customer.notes || "-"}`);
+      lines.push("");
+      lines.push("Please send me your quotation.");
+
+      return lines.join("\n");
+    }
+
     const lines = [
-      "CANHOPE STEEL 询盘清单",
+      m.inquiry.rfqHeader,
       "",
-      `客户姓名：${customer.name || "-"}`,
-      `公司名称：${customer.company || "-"}`,
-      `国家/地区：${customer.country || "-"}`,
-      `WhatsApp：${customer.whatsapp || "-"}`,
-      `邮箱：${customer.email || "-"}`,
-      `目的港：${customer.port || "-"}`,
+      `${m.inquiry.customerName}：${customer.name || "-"}`,
+      `${m.inquiry.companyName}：${customer.company || "-"}`,
+      `${m.inquiry.country}：${customer.country || "-"}`,
+      `${m.inquiry.whatsapp}：${customer.whatsapp || "-"}`,
+      `${m.inquiry.email}：${customer.email || "-"}`,
+      `${m.inquiry.destinationPort}：${customer.port || "-"}`,
       "",
-      "材料清单：",
+      `${m.inquiry.listTitle}：`,
     ];
 
     materialList.modules.forEach((module) => {
-      lines.push(`\n${productName(module.productType)}`);
+      lines.push(`\n${productName(module.productType, m)}`);
       module.rows.forEach((row, index) => {
         const calc = calculateRow(row);
-        const description = getRowDescription(row) || "规格待选择";
-        const length = "lengthM" in row ? `，长度 ${row.lengthM}m` : "";
+        const description = getRowDescription(row, locale, m) || m.materialList.specPending;
+        const length = "lengthM" in row ? `，${m.fields.length} ${formatLength(getDisplayLengthM(row), locale)}` : "";
         lines.push(
-          `${index + 1}. ${description}${length}，数量 ${row.quantity}${row.quantityUnit}，总重量 ${
-            calc.hasWeight ? formatTonFromKg(calc.totalWeightKg) : "重量待补充"
+          `${index + 1}. ${description}${length}，${m.fields.quantity} ${formatQuantity(row.quantity, row.quantityUnit, locale)}，${
+            m.fields.totalWeight
+          } ${calc.hasWeight ? formatTonFromKg(calc.totalWeightKg, locale, m.notices.weightPending) : m.notices.weightPending
           }`,
         );
       });
     });
 
     lines.push("");
-    lines.push(`理论总重量：${formatNumber(summary.totalWeightTon)} 吨`);
+    lines.push(`${m.summary.theoreticalWeight}：${formatTonFromKg(summary.totalWeightKg, locale, m.notices.weightPending)}`);
     lines.push(
-      `40HQ估算：${
+      `${m.summary.containerEstimate}：${
         summary.containerCount > 0
-          ? `预计 ${summary.containerCount} × 40HQ`
-          : "预计 0 × 40HQ"
+          ? `${m.summary.estimated} ${summary.containerCount} × 40HQ`
+          : `${m.summary.estimated} 0 × 40HQ`
       }`,
     );
     if (summary.missingWeightRowCount > 0) {
-      lines.push(`缺少重量：${summary.missingWeightRowCount} 行`);
+      lines.push(`${m.summary.missingWeight}：${summary.missingWeightRowCount} ${m.summary.missingRowsSuffix}`);
     }
-    lines.push(`补充要求：${customer.notes || "-"}`);
+    lines.push(`${m.inquiry.notes}：${customer.notes || "-"}`);
 
     return lines.join("\n");
-  }, [customer, materialList, summary]);
+  }, [customer, locale, m, materialList, summary]);
 
   function addProduct(productType: ProductType) {
     setActiveProduct(productType);
@@ -414,7 +630,7 @@ export default function Home() {
     addProduct(productType);
   }
 
-  function addCustomRow(productType: SteelPipeProductType | "square_tube") {
+  function addCustomRow(productType: SteelPipeProductType | "galvanized_square_rectangular_tube") {
     setActiveProduct(productType);
     setMaterialList((current) => {
       const existing = current.modules.find((module) => module.productType === productType);
@@ -516,24 +732,30 @@ export default function Home() {
             </span>
             <div className="min-w-0">
               <div className="text-lg font-bold leading-5 tracking-normal">CANHOPE STEEL</div>
-              <div className="truncate text-xs text-blue-100">钢材重量计算与询盘工具</div>
+              <div className="truncate text-xs text-blue-100">{m.nav.subtitle}</div>
             </div>
           </div>
 
           <nav className="hidden items-center gap-5 text-sm text-blue-100 md:flex">
+            <div className="flex items-center gap-2">
+              <button className={`nav-link ${locale === "zh" ? "text-white" : ""}`} type="button" onClick={() => switchLocale("zh")}>
+                {m.nav.languageZh}
+              </button>
+              <span className="text-blue-200">|</span>
+              <button className={`nav-link ${locale === "en" ? "text-white" : ""}`} type="button" onClick={() => switchLocale("en")}>
+                {m.nav.languageEn}
+              </button>
+            </div>
             <button className="nav-link" type="button">
-              中文 / English
-            </button>
-            <button className="nav-link" type="button">
-              使用说明
+              {m.nav.instructions}
             </button>
             <button className="primary-button" type="button" onClick={() => setIsRfqOpen(true)}>
-              发送询盘 {summary.validRowCount}
+              {m.nav.sendRfq} {summary.validRowCount}
             </button>
           </nav>
 
           <button className="primary-button md:hidden" type="button" onClick={() => setIsRfqOpen(true)}>
-            询盘 {summary.validRowCount}
+            {m.nav.mobileRfq} {summary.validRowCount}
           </button>
         </div>
       </header>
@@ -541,17 +763,17 @@ export default function Home() {
       <section className="mx-auto max-w-[1500px] px-4 py-5 sm:px-6">
         <div className="intro-panel">
           <div>
-            <p className="text-xl font-bold text-slate-950">灿煌钢铁集团</p>
-            <p className="text-sm font-semibold uppercase text-[#0e5f9f]">CANHOPE STEEL GROUP</p>
+            <p className="text-xl font-bold text-slate-950">{m.company.name}</p>
+            <p className="text-sm font-semibold uppercase text-[#0e5f9f]">{m.company.englishName}</p>
           </div>
           <div className="max-w-3xl text-sm leading-6 text-slate-600">
-            始于1993年，提供钢管、型钢、板材、消防系统材料及工程加工出口服务。
+            {m.company.description}
             <a className="ml-2 font-semibold text-[#0e5f9f]" href="https://canhopesteel.com" target="_blank">
               canhopesteel.com
             </a>
           </div>
           <div className="intro-tags">
-            {["始于1993年", "工厂与库存", "项目配套", "全球出口"].map((item) => (
+            {m.company.tags.map((item) => (
               <span key={item}>{item}</span>
             ))}
           </div>
@@ -560,11 +782,11 @@ export default function Home() {
 
       <section className="mx-auto grid max-w-[1500px] gap-5 px-4 sm:px-6 min-[900px]:grid-cols-[270px_minmax(0,1fr)]">
         <aside className="sidebar-panel">
-          <p className="mb-5 text-base font-bold text-slate-950">点击产品，添加到材料清单</p>
+          <p className="mb-5 text-base font-bold text-slate-950">{m.materialList.addHint}</p>
           <div className="space-y-6">
             {categories.map((category) => (
               <div key={category}>
-                <p className="mb-2 text-xs font-bold uppercase text-slate-500">{category}</p>
+                <p className="mb-2 text-xs font-bold uppercase text-slate-500">{categoryName(category, m)}</p>
                 <div className="grid gap-2">
                   {productDefinitions
                     .filter((product) => product.category === category)
@@ -575,8 +797,7 @@ export default function Home() {
                         type="button"
                         onClick={() => addProduct(product.type)}
                       >
-                        <span>{product.name}</span>
-                        <span className="text-xs">{product.englishName}</span>
+                        <span>{productName(product.type, m)}</span>
                       </button>
                     ))}
                 </div>
@@ -588,22 +809,22 @@ export default function Home() {
         <section className="content-panel">
           <div className="mb-5 flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-2xl font-bold tracking-normal text-slate-950">材料清单</h1>
-              <p className="text-sm text-slate-500">Material List</p>
+              <h1 className="text-2xl font-bold tracking-normal text-slate-950">{m.materialList.title}</h1>
+              <p className="text-sm text-slate-500">{m.materialList.subtitle}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="status-pill">演示数据模式</span>
+              <span className="status-pill">{m.materialList.demoMode}</span>
               <button className="secondary-button" type="button" onClick={clearAll}>
-                清空清单
+                {m.actions.clearAll}
               </button>
             </div>
           </div>
 
           {materialList.modules.length === 0 ? (
             <div className="empty-state">
-              <p className="text-lg font-bold text-slate-950">从左侧添加一个产品开始</p>
+              <p className="text-lg font-bold text-slate-950">{m.materialList.emptyTitle}</p>
               <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
-                第一版使用少量演示数据。点击同一产品会继续增加规格行，不会隐藏已有品类。
+                {m.materialList.emptyDescription}
               </p>
             </div>
           ) : (
@@ -621,6 +842,8 @@ export default function Home() {
                   onUpdateRow={updateRow}
                   onDeleteRow={deleteRow}
                   onDuplicateRow={duplicateRow}
+                  locale={locale}
+                  m={m}
                 />
               ))}
             </div>
@@ -628,7 +851,7 @@ export default function Home() {
         </section>
       </section>
 
-      <SummaryBar summary={summary} onOpenRfq={() => setIsRfqOpen(true)} />
+      <SummaryBar summary={summary} onOpenRfq={() => setIsRfqOpen(true)} locale={locale} m={m} />
 
       {isRfqOpen ? (
         <RfqModal
@@ -640,6 +863,8 @@ export default function Home() {
           copied={copied}
           onCopy={copyRfq}
           onClose={() => setIsRfqOpen(false)}
+          locale={locale}
+          m={m}
         />
       ) : null}
     </main>
@@ -655,53 +880,59 @@ function ProductModule({
   onUpdateRow,
   onDeleteRow,
   onDuplicateRow,
+  locale,
+  m,
 }: {
   module: MaterialModule;
   setModuleRef: (node: HTMLDivElement | null) => void;
   onAddRow: (productType: ProductType) => void;
-  onAddCustomRow: (productType: SteelPipeProductType | "square_tube") => void;
+  onAddCustomRow: (productType: SteelPipeProductType | "galvanized_square_rectangular_tube") => void;
   onDeleteModule: (moduleId: string) => void;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
   onDeleteRow: (moduleId: string, rowId: string) => void;
   onDuplicateRow: (moduleId: string, row: MaterialRow) => void;
+  locale: Locale;
+  m: Messages;
 }) {
   const subtotal = calculateModuleSubtotal(module);
   const missingRows = module.rows.filter((row) => row.quantity > 0 && !calculateRow(row).hasWeight).length;
   const subtotalLabel =
     missingRows > 0 && subtotal === 0
-      ? "重量待补充"
+      ? m.notices.weightPending
       : missingRows > 0
-        ? `${formatTonFromKg(subtotal)}，另有 ${missingRows} 行重量待补充`
-        : formatTonFromKg(subtotal);
+        ? `${formatTonFromKg(subtotal, locale, m.notices.weightPending)}，${m.summary.additionalMissingRows.replace("{count}", String(missingRows))}`
+        : formatTonFromKg(subtotal, locale, m.notices.weightPending);
 
   return (
     <div ref={setModuleRef} className="module-card scroll-mt-24">
       <div className="module-header">
         <div>
           <h2 className="text-lg font-bold text-slate-950">
-            {productName(module.productType)}（{module.rows.length}行）
+            {productName(module.productType, m)}（{module.rows.length} {m.materialList.rows}）
           </h2>
-          <p className="text-sm text-slate-500">小计：{subtotalLabel}</p>
+          <p className="text-sm text-slate-500">
+            {m.materialList.subtotal}：{subtotalLabel}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button className="small-blue-button" type="button" onClick={() => onAddRow(module.productType)}>
-            增加规格
+            {m.actions.addSpec}
           </button>
           <button className="secondary-button" type="button" onClick={() => onDeleteModule(module.id)}>
-            删除模块
+            {m.actions.deleteModule}
           </button>
         </div>
       </div>
 
       {module.rows.length === 0 ? (
         <div className="rounded-md border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-500">
-          暂无规格，点击“增加规格”添加一行。
+          {m.materialList.noRows}
         </div>
       ) : (
         <>
           <div className="hidden overflow-x-auto md:block">
             <table className="material-table">
-              <ProductTableHead productType={module.productType} />
+              <ProductTableHead productType={module.productType} m={m} />
               <tbody>
                 {module.rows.map((row) => (
                   <ProductRow
@@ -712,6 +943,8 @@ function ProductModule({
                     onDeleteRow={onDeleteRow}
                     onDuplicateRow={onDuplicateRow}
                     onAddCustomRow={onAddCustomRow}
+                    locale={locale}
+                    m={m}
                   />
                 ))}
               </tbody>
@@ -728,31 +961,35 @@ function ProductModule({
                 onDeleteRow={onDeleteRow}
                 onDuplicateRow={onDuplicateRow}
                 onAddCustomRow={onAddCustomRow}
+                locale={locale}
+                m={m}
               />
             ))}
           </div>
         </>
       )}
 
-      {isSteelPipeProduct(module.productType) || module.productType === "square_tube" ? (
+      {isSteelPipeProduct(module.productType) || module.productType === "galvanized_square_rectangular_tube" ? (
         <button className="custom-size-link" type="button" onClick={() => onAddCustomRow(module.productType)}>
-          没有合适规格？使用自定义尺寸
+          {m.customSize.noSuitableSpec}
+          {locale === "zh" ? "" : " "}
+          {m.customSize.useCustomSize}
         </button>
       ) : null}
     </div>
   );
 }
 
-function ProductTableHead({ productType }: { productType: ProductType }) {
-  const commonEnd = ["数量", "单位重量", "单支/单件重量", "总重量", "操作"];
+function ProductTableHead({ productType, m }: { productType: ProductType; m: Messages }) {
+  const commonEnd = [m.fields.quantity, m.fields.unitWeight, m.fields.pieceWeightFull, m.fields.totalWeight, m.fields.action];
   const columns =
-    isSteelPipeProduct(productType) || productType === "square_tube"
-      ? ["规格", "壁厚", "长度m", ...commonEnd]
+    isSteelPipeProduct(productType) || productType === "galvanized_square_rectangular_tube"
+      ? [m.fields.spec, m.fields.thickness, m.fields.length, ...commonEnd]
       : productType === "angle_steel"
-        ? ["规格/型号", "厚度", "长度m", ...commonEnd]
+        ? [m.fields.specModel, m.fields.thicknessShort, m.fields.length, ...commonEnd]
         : productType === "channel_steel"
-          ? ["规格/型号", "长度m", ...commonEnd]
-          : ["管件类型", "公称尺寸", "型号或角度", ...commonEnd];
+          ? [m.fields.specModel, m.fields.length, ...commonEnd]
+          : [m.fields.fittingType, m.fields.size, m.fields.modelOrAngle, ...commonEnd];
 
   return (
     <thead>
@@ -772,31 +1009,35 @@ function ProductRow({
   onDeleteRow,
   onDuplicateRow,
   onAddCustomRow,
+  locale,
+  m,
 }: {
   row: MaterialRow;
   moduleId: string;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
   onDeleteRow: (moduleId: string, rowId: string) => void;
   onDuplicateRow: (moduleId: string, row: MaterialRow) => void;
-  onAddCustomRow: (productType: SteelPipeProductType | "square_tube") => void;
+  onAddCustomRow: (productType: SteelPipeProductType | "galvanized_square_rectangular_tube") => void;
+  locale: Locale;
+  m: Messages;
 }) {
   const calc = calculateRow(row);
   const actionCells = (
     <>
       <td>
-        <WeightCell calculation={calc} />
+        <WeightCell calculation={calc} locale={locale} m={m} />
       </td>
-      <td>{calc.hasWeight ? formatKg(calc.pieceWeightKg) : <MissingWeight />}</td>
+      <td>{calc.hasWeight ? formatKg(calc.pieceWeightKg, locale, m.notices.weightPending) : <MissingWeight m={m} />}</td>
       <td className="font-bold text-slate-950">
-        {calc.hasWeight ? formatTonFromKg(calc.totalWeightKg) : <MissingWeight />}
+        {calc.hasWeight ? formatTonFromKg(calc.totalWeightKg, locale, m.notices.weightPending) : <MissingWeight m={m} />}
       </td>
       <td>
         <div className="row-actions">
           <button type="button" onClick={() => onDuplicateRow(moduleId, row)}>
-            复制
+            {m.actions.copy}
           </button>
           <button type="button" onClick={() => onDeleteRow(moduleId, row.id)}>
-            删除
+            {m.actions.delete}
           </button>
         </div>
       </td>
@@ -807,7 +1048,7 @@ function ProductRow({
     return (
       <tr>
         {row.dimensionMode === "custom" ? (
-          <CustomRoundCells row={row} onUpdateRow={onUpdateRow} />
+          <CustomRoundCells row={row} onUpdateRow={onUpdateRow} m={m} />
         ) : (
           <>
             <td>
@@ -815,6 +1056,8 @@ function ProductRow({
                 productType={row.productType}
                 value={row.specId}
                 onChange={(specId) => onUpdateRow(row.id, { specId, thicknessId: "" })}
+                locale={locale}
+                m={m}
               />
             </td>
             <td>
@@ -823,43 +1066,56 @@ function ProductRow({
                 specId={row.specId}
                 value={row.thicknessId}
                 onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
+                locale={locale}
+                m={m}
               />
             </td>
           </>
         )}
-        <LengthInput row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} />
-        <QuantityInput row={row} onUpdateRow={onUpdateRow} />
+        <LengthInput row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        <QuantityInput row={row} onUpdateRow={onUpdateRow} locale={locale} />
         {actionCells}
       </tr>
     );
   }
 
-  if (row.productType === "square_tube") {
+  if (row.productType === "galvanized_square_rectangular_tube") {
     return (
       <tr>
         {row.dimensionMode === "custom" ? (
-          <CustomSquareCells row={row} onUpdateRow={onUpdateRow} />
+          <CustomSquareCells row={row} onUpdateRow={onUpdateRow} m={m} />
         ) : (
           <>
             <td>
-              <SpecSelect
-                specs={squareTubeSpecs}
+              <GalvanizedSquareRectangularTubeSpecSelect
                 value={row.specId}
-                onChange={(specId) => onUpdateRow(row.id, { specId, thicknessId: "" })}
+                onChange={(specId) => {
+                  const nextSpec = galvanizedSquareRectangularTubeData.find((spec) => spec.id === specId);
+                  const nextThickness = nextSpec?.thicknessOptions[0];
+                  onUpdateRow(row.id, {
+                    specId,
+                    thicknessId: nextThickness
+                      ? getGalvanizedSquareRectangularTubeThicknessId(nextThickness.thicknessMm)
+                      : "",
+                    lengthM: 6,
+                  });
+                }}
+                m={m}
               />
             </td>
             <td>
-              <ThicknessSelect
-                specs={squareTubeSpecs}
+              <GalvanizedSquareRectangularTubeThicknessSelect
                 specId={row.specId}
                 value={row.thicknessId}
                 onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
+                locale={locale}
+                m={m}
               />
             </td>
           </>
         )}
-        <LengthInput row={row} onUpdateRow={onUpdateRow} />
-        <QuantityInput row={row} onUpdateRow={onUpdateRow} />
+        <LengthInput row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        <QuantityInput row={row} onUpdateRow={onUpdateRow} locale={locale} />
         {actionCells}
       </tr>
     );
@@ -873,6 +1129,7 @@ function ProductRow({
             specs={angleSteelSpecs}
             value={row.specId}
             onChange={(specId) => onUpdateRow(row.id, { specId, thicknessId: "" })}
+            m={m}
           />
         </td>
         <td>
@@ -881,10 +1138,11 @@ function ProductRow({
             specId={row.specId}
             value={row.thicknessId}
             onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
+            m={m}
           />
         </td>
-        <LengthInput row={row} onUpdateRow={onUpdateRow} />
-        <QuantityInput row={row} onUpdateRow={onUpdateRow} />
+        <LengthInput row={row} onUpdateRow={onUpdateRow} locale={locale} m={m} />
+        <QuantityInput row={row} onUpdateRow={onUpdateRow} locale={locale} />
         {actionCells}
       </tr>
     );
@@ -895,7 +1153,7 @@ function ProductRow({
       <tr>
         <td>
           <select className="field" value={row.specId} onChange={(event) => onUpdateRow(row.id, { specId: event.target.value })}>
-            <option value="">选择规格</option>
+            <option value="">{m.fields.selectSpec}</option>
             {channelSteelSpecs.map((spec) => (
               <option key={spec.id} value={spec.id}>
                 {spec.label}
@@ -903,8 +1161,8 @@ function ProductRow({
             ))}
           </select>
         </td>
-        <LengthInput row={row} onUpdateRow={onUpdateRow} />
-        <QuantityInput row={row} onUpdateRow={onUpdateRow} />
+        <LengthInput row={row} onUpdateRow={onUpdateRow} locale={locale} m={m} />
+        <QuantityInput row={row} onUpdateRow={onUpdateRow} locale={locale} />
         {actionCells}
       </tr>
     );
@@ -912,8 +1170,8 @@ function ProductRow({
 
   return (
     <tr>
-      <GroovedFittingFields row={row} onUpdateRow={onUpdateRow} />
-      <QuantityInput row={row} onUpdateRow={onUpdateRow} />
+      <GroovedFittingFields row={row} onUpdateRow={onUpdateRow} m={m} />
+      <QuantityInput row={row} onUpdateRow={onUpdateRow} locale={locale} />
       {actionCells}
     </tr>
   );
@@ -926,13 +1184,17 @@ function MobileRowCard({
   onDeleteRow,
   onDuplicateRow,
   onAddCustomRow,
+  locale,
+  m,
 }: {
   row: MaterialRow;
   moduleId: string;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
   onDeleteRow: (moduleId: string, rowId: string) => void;
   onDuplicateRow: (moduleId: string, row: MaterialRow) => void;
-  onAddCustomRow: (productType: SteelPipeProductType | "square_tube") => void;
+  onAddCustomRow: (productType: SteelPipeProductType | "galvanized_square_rectangular_tube") => void;
+  locale: Locale;
+  m: Messages;
 }) {
   const calc = calculateRow(row);
 
@@ -940,37 +1202,40 @@ function MobileRowCard({
     <article className="mobile-row-card">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-bold text-slate-950">{getRowDescription(row) || "规格待选择"}</p>
+          <p className="font-bold text-slate-950">{getRowDescription(row, locale, m) || m.materialList.specPending}</p>
           <p className="text-xs text-slate-500">
-            {"lengthM" in row ? `长度 ${row.lengthM}m · ` : ""}
-            数量 {row.quantity}
-            {row.quantityUnit}
+            {"lengthM" in row ? `${m.fields.length} ${formatLength(getDisplayLengthM(row), locale)} · ` : ""}
+            {m.fields.quantity} {formatQuantity(row.quantity, row.quantityUnit, locale)}
           </p>
         </div>
         <p className="text-right text-sm font-bold text-slate-950">
-          {calc.hasWeight ? formatTonFromKg(calc.totalWeightKg) : "重量待补充"}
+          {calc.hasWeight ? formatTonFromKg(calc.totalWeightKg, locale, m.notices.weightPending) : m.notices.weightPending}
         </p>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <ProductRowFields row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} />
+        <ProductRowFields row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
         <div>
-          <p className="text-xs text-slate-500">单位重量</p>
-          <p>{calc.hasWeight ? `${formatNumber(calc.unitWeightKg ?? 0)} ${calc.unitWeightLabel}` : "重量待补充"}</p>
+          <p className="text-xs text-slate-500">{m.fields.unitWeight}</p>
+          <p>
+            {calc.hasWeight
+              ? `${formatNumber(calc.unitWeightKg ?? 0, 2, locale)} ${formatUnitWeightLabel(calc.unitWeightLabel, locale)}`
+              : m.notices.weightPending}
+          </p>
         </div>
         <div>
-          <p className="text-xs text-slate-500">单支/件</p>
-          <p>{calc.hasWeight ? formatKg(calc.pieceWeightKg) : "重量待补充"}</p>
+          <p className="text-xs text-slate-500">{m.fields.pieceWeight}</p>
+          <p>{calc.hasWeight ? formatKg(calc.pieceWeightKg, locale, m.notices.weightPending) : m.notices.weightPending}</p>
         </div>
         <div className="row-actions justify-end">
           <button type="button" onClick={() => onDuplicateRow(moduleId, row)}>
-            复制
+            {m.actions.copy}
           </button>
           <button type="button" onClick={() => onDeleteRow(moduleId, row.id)}>
-            删除
+            {m.actions.delete}
           </button>
         </div>
       </div>
@@ -982,26 +1247,30 @@ function ProductRowFields({
   row,
   onUpdateRow,
   onAddCustomRow,
+  locale,
+  m,
 }: {
   row: MaterialRow;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
-  onAddCustomRow: (productType: SteelPipeProductType | "square_tube") => void;
+  onAddCustomRow: (productType: SteelPipeProductType | "galvanized_square_rectangular_tube") => void;
+  locale: Locale;
+  m: Messages;
 }) {
-  if (isSteelPipeProduct(row.productType) || row.productType === "square_tube") {
+  if (isSteelPipeProduct(row.productType) || row.productType === "galvanized_square_rectangular_tube") {
     if (row.dimensionMode === "custom") {
       return (
         <>
           {isSteelPipeProduct(row.productType) ? (
             <>
               <label className="mobile-field-label">
-                外径mm
+                {m.fields.outerDiameter}
                 <NumberField
                   value={row.customOuterDiameterMm ?? 0}
                   onChange={(value) => onUpdateRow(row.id, { customOuterDiameterMm: value })}
                 />
               </label>
               <label className="mobile-field-label">
-                壁厚mm
+                {m.fields.thickness}
                 <NumberField
                   value={row.customThicknessMm ?? 0}
                   onChange={(value) => onUpdateRow(row.id, { customThicknessMm: value })}
@@ -1011,21 +1280,21 @@ function ProductRowFields({
           ) : (
             <>
               <label className="mobile-field-label">
-                宽度mm
+                {m.fields.width}
                 <NumberField
                   value={row.customWidthMm ?? 0}
                   onChange={(value) => onUpdateRow(row.id, { customWidthMm: value })}
                 />
               </label>
               <label className="mobile-field-label">
-                高度mm
+                {m.fields.height}
                 <NumberField
                   value={row.customHeightMm ?? 0}
                   onChange={(value) => onUpdateRow(row.id, { customHeightMm: value })}
                 />
               </label>
               <label className="mobile-field-label">
-                壁厚mm
+                {m.fields.thickness}
                 <NumberField
                   value={row.customThicknessMm ?? 0}
                   onChange={(value) => onUpdateRow(row.id, { customThicknessMm: value })}
@@ -1033,7 +1302,7 @@ function ProductRowFields({
               </label>
             </>
           )}
-          <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} />
+          <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
         </>
       );
     }
@@ -1041,40 +1310,55 @@ function ProductRowFields({
     return (
       <>
         <label className="mobile-field-label">
-          规格
+          {m.fields.spec}
           {isSteelPipeProduct(row.productType) ? (
             <SteelPipeSpecSelect
               productType={row.productType}
               value={row.specId}
               onChange={(specId) => onUpdateRow(row.id, { specId, thicknessId: "" })}
+              locale={locale}
+              m={m}
             />
           ) : (
-            <SpecSelect
-              specs={squareTubeSpecs}
+            <GalvanizedSquareRectangularTubeSpecSelect
               value={row.specId}
-              onChange={(specId) => onUpdateRow(row.id, { specId, thicknessId: "" })}
+              onChange={(specId) => {
+                const nextSpec = galvanizedSquareRectangularTubeData.find((spec) => spec.id === specId);
+                const nextThickness = nextSpec?.thicknessOptions[0];
+                onUpdateRow(row.id, {
+                  specId,
+                  thicknessId: nextThickness
+                    ? getGalvanizedSquareRectangularTubeThicknessId(nextThickness.thicknessMm)
+                    : "",
+                  lengthM: 6,
+                });
+              }}
+              m={m}
             />
           )}
         </label>
         <label className="mobile-field-label">
-          壁厚
+          {m.fields.thickness}
           {isSteelPipeProduct(row.productType) ? (
             <SteelPipeThicknessSelect
               productType={row.productType}
               specId={row.specId}
               value={row.thicknessId}
               onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
+              locale={locale}
+              m={m}
             />
           ) : (
-            <ThicknessSelect
-              specs={squareTubeSpecs}
+            <GalvanizedSquareRectangularTubeThicknessSelect
               specId={row.specId}
               value={row.thicknessId}
               onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
+              locale={locale}
+              m={m}
             />
           )}
         </label>
-        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} />
+        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
       </>
     );
   }
@@ -1083,14 +1367,14 @@ function ProductRowFields({
     return (
       <>
         <label className="mobile-field-label">
-          规格
-          <SpecSelect specs={angleSteelSpecs} value={row.specId} onChange={(specId) => onUpdateRow(row.id, { specId, thicknessId: "" })} />
+          {m.fields.spec}
+          <SpecSelect specs={angleSteelSpecs} value={row.specId} onChange={(specId) => onUpdateRow(row.id, { specId, thicknessId: "" })} m={m} />
         </label>
         <label className="mobile-field-label">
-          厚度
-          <ThicknessSelect specs={angleSteelSpecs} specId={row.specId} value={row.thicknessId} onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })} />
+          {m.fields.thicknessShort}
+          <ThicknessSelect specs={angleSteelSpecs} specId={row.specId} value={row.thicknessId} onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })} m={m} />
         </label>
-        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} />
+        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
       </>
     );
   }
@@ -1099,9 +1383,9 @@ function ProductRowFields({
     return (
       <>
         <label className="mobile-field-label">
-          规格
+          {m.fields.spec}
           <select className="field" value={row.specId} onChange={(event) => onUpdateRow(row.id, { specId: event.target.value })}>
-            <option value="">选择规格</option>
+            <option value="">{m.fields.selectSpec}</option>
             {channelSteelSpecs.map((spec) => (
               <option key={spec.id} value={spec.id}>
                 {spec.label}
@@ -1109,16 +1393,16 @@ function ProductRowFields({
             ))}
           </select>
         </label>
-        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} />
+        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
       </>
     );
   }
 
   return (
     <>
-      <GroovedFittingFields row={row} onUpdateRow={onUpdateRow} isMobile />
+      <GroovedFittingFields row={row} onUpdateRow={onUpdateRow} isMobile m={m} />
       <label className="mobile-field-label">
-        数量件
+        {m.fields.quantity}
         <input
           className="field"
           min="0"
@@ -1135,19 +1419,29 @@ function MobileLengthQuantity({
   row,
   onUpdateRow,
   onAddCustomRow,
+  locale,
+  m,
 }: {
   row: Exclude<MaterialRow, { productType: "grooved_fitting" }>;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
-  onAddCustomRow: (productType: SteelPipeProductType | "square_tube") => void;
+  onAddCustomRow: (productType: SteelPipeProductType | "galvanized_square_rectangular_tube") => void;
+  locale: Locale;
+  m: Messages;
 }) {
-  const locked = isStandardGalvanizedPipeRow(row);
+  const locked = isFixedLengthStandardSteelPipeRow(row);
 
   return (
     <>
       <label className="mobile-field-label">
-        长度m
+        {m.fields.length}
         {locked ? (
-          <LockedLengthField productType={row.productType as SteelPipeProductType} onAddCustomRow={onAddCustomRow} />
+          <LockedLengthField
+            productType={row.productType}
+            onAddCustomRow={onAddCustomRow}
+            locale={locale}
+            m={m}
+            lengthM={getDisplayLengthM(row)}
+          />
         ) : (
           <input
             className="field"
@@ -1160,7 +1454,7 @@ function MobileLengthQuantity({
         )}
       </label>
       <label className="mobile-field-label">
-        数量支
+        {m.fields.quantity}
         <input
           className="field"
           min="0"
@@ -1176,15 +1470,17 @@ function MobileLengthQuantity({
 function CustomRoundCells({
   row,
   onUpdateRow,
+  m,
 }: {
   row: Extract<MaterialRow, { productType: SteelPipeProductType }>;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  m: Messages;
 }) {
   return (
     <>
       <td>
         <div className="custom-dimension-field">
-          <span>自定义外径</span>
+          <span>{m.fields.customOuterDiameter}</span>
           <NumberField
             value={row.customOuterDiameterMm ?? 0}
             onChange={(value) => onUpdateRow(row.id, { customOuterDiameterMm: value })}
@@ -1194,7 +1490,7 @@ function CustomRoundCells({
       </td>
       <td>
         <div className="custom-dimension-field">
-          <span>壁厚</span>
+          <span>{m.fields.thickness}</span>
           <NumberField
             value={row.customThicknessMm ?? 0}
             onChange={(value) => onUpdateRow(row.id, { customThicknessMm: value })}
@@ -1209,20 +1505,22 @@ function CustomRoundCells({
 function CustomSquareCells({
   row,
   onUpdateRow,
+  m,
 }: {
-  row: Extract<MaterialRow, { productType: "square_tube" }>;
+  row: Extract<MaterialRow, { productType: "galvanized_square_rectangular_tube" }>;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  m: Messages;
 }) {
   return (
     <>
       <td>
         <div className="custom-dimension-field custom-dimension-field-wide">
-          <span>宽</span>
+          <span>{m.fields.width}</span>
           <NumberField
             value={row.customWidthMm ?? 0}
             onChange={(value) => onUpdateRow(row.id, { customWidthMm: value })}
           />
-          <span>高</span>
+          <span>{m.fields.height}</span>
           <NumberField
             value={row.customHeightMm ?? 0}
             onChange={(value) => onUpdateRow(row.id, { customHeightMm: value })}
@@ -1232,7 +1530,7 @@ function CustomSquareCells({
       </td>
       <td>
         <div className="custom-dimension-field">
-          <span>壁厚</span>
+          <span>{m.fields.thickness}</span>
           <NumberField
             value={row.customThicknessMm ?? 0}
             onChange={(value) => onUpdateRow(row.id, { customThicknessMm: value })}
@@ -1269,21 +1567,44 @@ function SteelPipeSpecSelect({
   productType,
   value,
   onChange,
+  locale,
+  m,
 }: {
   productType: SteelPipeProductType;
   value: string;
   onChange: (value: string) => void;
+  locale: Locale;
+  m: Messages;
 }) {
-  const specs = productType === "galvanized_pipe" ? galvanizedPipeData : [];
+  const hasSpecs =
+    productType === "galvanized_pipe" ||
+    productType === "galvanized_sheet_pipe" ||
+    productType === "black_steel_pipe";
 
   return (
     <select className="field" value={value} onChange={(event) => onChange(event.target.value)}>
-      <option value="">{specs.length > 0 ? "选择规格" : "规格数据待导入"}</option>
-      {specs.map((spec) => (
-        <option key={spec.id} value={spec.id}>
-          {getGalvanizedPipeSpecLabel(spec)}
-        </option>
-      ))}
+      <option value="">{hasSpecs ? m.fields.selectSpec : m.fields.specDataPending}</option>
+      {productType === "galvanized_pipe"
+        ? galvanizedPipeData.map((spec) => (
+            <option key={spec.id} value={spec.id}>
+              {formatGalvanizedPipeSpec(spec, locale)}
+            </option>
+          ))
+        : null}
+      {productType === "galvanized_sheet_pipe"
+        ? galvanizedSheetPipeData.map((spec) => (
+            <option key={spec.id} value={spec.id}>
+              {formatGalvanizedSheetPipeSpec(spec, locale)}
+            </option>
+          ))
+        : null}
+      {productType === "black_steel_pipe"
+        ? blackSteelPipeData.map((spec) => (
+            <option key={spec.id} value={spec.id}>
+              {formatBlackSteelPipeSpec(spec, locale)}
+            </option>
+          ))
+        : null}
     </select>
   );
 }
@@ -1293,31 +1614,107 @@ function SteelPipeThicknessSelect({
   specId,
   value,
   onChange,
+  locale,
+  m,
 }: {
   productType: SteelPipeProductType;
   specId: string;
   value: string;
   onChange: (value: string) => void;
+  locale: Locale;
+  m: Messages;
 }) {
   const thicknesses =
     productType === "galvanized_pipe"
       ? galvanizedPipeData.find((spec) => spec.id === specId)?.thicknessOptions ?? []
-      : [];
+      : productType === "galvanized_sheet_pipe"
+        ? galvanizedSheetPipeData.find((spec) => spec.id === specId)?.thicknessOptions ?? []
+        : productType === "black_steel_pipe"
+          ? blackSteelPipeData.find((spec) => spec.id === specId)?.thicknessOptions ?? []
+          : [];
+  const hasStandardData =
+    productType === "galvanized_pipe" ||
+    productType === "galvanized_sheet_pipe" ||
+    productType === "black_steel_pipe";
 
   return (
     <select
       className="field"
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      disabled={productType !== "galvanized_pipe" || !specId}
+      disabled={!hasStandardData || !specId}
     >
-      <option value="">{thicknesses.length > 0 ? "选择厚度" : "厚度数据待导入"}</option>
+      <option value="">{thicknesses.length > 0 ? m.fields.selectThickness : m.fields.thicknessDataPending}</option>
       {thicknesses.map((thickness) => (
         <option
-          key={getGalvanizedPipeThicknessId(thickness.thicknessMm)}
-          value={getGalvanizedPipeThicknessId(thickness.thicknessMm)}
+          key={
+            productType === "galvanized_pipe"
+              ? getGalvanizedPipeThicknessId(thickness.thicknessMm)
+              : productType === "galvanized_sheet_pipe"
+                ? getGalvanizedSheetPipeThicknessId(thickness.thicknessMm)
+                : getBlackSteelPipeThicknessId(thickness.thicknessMm)
+          }
+          value={
+            productType === "galvanized_pipe"
+              ? getGalvanizedPipeThicknessId(thickness.thicknessMm)
+              : productType === "galvanized_sheet_pipe"
+                ? getGalvanizedSheetPipeThicknessId(thickness.thicknessMm)
+                : getBlackSteelPipeThicknessId(thickness.thicknessMm)
+          }
         >
-          {getGalvanizedPipeThicknessLabel(thickness.thicknessMm)}
+          {formatThicknessValue(thickness.thicknessMm, locale)}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function GalvanizedSquareRectangularTubeSpecSelect({
+  value,
+  onChange,
+  m,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  m: Messages;
+}) {
+  return (
+    <select className="field" value={value} onChange={(event) => onChange(event.target.value)}>
+      <option value="">{m.fields.selectSpec}</option>
+      {galvanizedSquareRectangularTubeData.map((spec) => (
+        <option key={spec.id} value={spec.id}>
+          {formatGalvanizedSquareRectangularTubeSpec(spec)}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function GalvanizedSquareRectangularTubeThicknessSelect({
+  specId,
+  value,
+  onChange,
+  locale,
+  m,
+}: {
+  specId: string;
+  value: string;
+  onChange: (value: string) => void;
+  locale: Locale;
+  m: Messages;
+}) {
+  const thicknesses =
+    galvanizedSquareRectangularTubeData.find((spec) => spec.id === specId)?.thicknessOptions ?? [];
+
+  return (
+    <select className="field" value={value} onChange={(event) => onChange(event.target.value)} disabled={!specId}>
+      <option value="">{thicknesses.length > 0 ? m.fields.selectThickness : m.fields.thicknessDataPending}</option>
+      {thicknesses.map((thickness) => (
+        <option
+          key={getGalvanizedSquareRectangularTubeThicknessId(thickness.thicknessMm)}
+          value={getGalvanizedSquareRectangularTubeThicknessId(thickness.thicknessMm)}
+        >
+          {formatThicknessValue(thickness.thicknessMm, locale)}
         </option>
       ))}
     </select>
@@ -1328,14 +1725,16 @@ function SpecSelect({
   specs,
   value,
   onChange,
+  m,
 }: {
   specs: StandardSpec[];
   value: string;
   onChange: (value: string) => void;
+  m: Messages;
 }) {
   return (
     <select className="field" value={value} onChange={(event) => onChange(event.target.value)}>
-      <option value="">选择规格</option>
+      <option value="">{m.fields.selectSpec}</option>
       {specs.map((spec) => (
         <option key={spec.id} value={spec.id}>
           {spec.label}
@@ -1350,17 +1749,19 @@ function ThicknessSelect({
   specId,
   value,
   onChange,
+  m,
 }: {
   specs: StandardSpec[];
   specId: string;
   value: string;
   onChange: (value: string) => void;
+  m: Messages;
 }) {
   const thicknesses = specs.find((spec) => spec.id === specId)?.thicknesses ?? [];
 
   return (
     <select className="field" value={value} onChange={(event) => onChange(event.target.value)} disabled={!specId}>
-      <option value="">选择厚度</option>
+      <option value="">{m.fields.selectThickness}</option>
       {thicknesses.map((thickness) => (
         <option key={thickness.id} value={thickness.id}>
           {thickness.label}
@@ -1374,17 +1775,28 @@ function LengthInput({
   row,
   onUpdateRow,
   onAddCustomRow,
+  locale = "zh",
+  m,
 }: {
   row: Exclude<MaterialRow, { productType: "grooved_fitting" }>;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
-  onAddCustomRow?: (productType: SteelPipeProductType | "square_tube") => void;
+  onAddCustomRow?: (productType: SteelPipeProductType | "galvanized_square_rectangular_tube") => void;
+  locale?: Locale;
+  m: Messages;
 }) {
-  const locked = isStandardGalvanizedPipeRow(row);
+  const locked = isFixedLengthStandardSteelPipeRow(row);
 
   return (
     <td>
       {locked && onAddCustomRow ? (
-        <LockedLengthField productType={row.productType as SteelPipeProductType} onAddCustomRow={onAddCustomRow} compact />
+        <LockedLengthField
+          productType={row.productType}
+          onAddCustomRow={onAddCustomRow}
+          locale={locale}
+          m={m}
+          lengthM={getDisplayLengthM(row)}
+          compact
+        />
       ) : (
         <input
           className="field w-20"
@@ -1402,22 +1814,28 @@ function LengthInput({
 function LockedLengthField({
   productType,
   onAddCustomRow,
+  locale,
+  m,
+  lengthM,
   compact = false,
 }: {
-  productType: SteelPipeProductType;
-  onAddCustomRow: (productType: SteelPipeProductType | "square_tube") => void;
+  productType: SteelPipeProductType | "galvanized_square_rectangular_tube";
+  onAddCustomRow: (productType: SteelPipeProductType | "galvanized_square_rectangular_tube") => void;
+  locale: Locale;
+  m: Messages;
+  lengthM: number;
   compact?: boolean;
 }) {
   return (
     <div className={`locked-length-field ${compact ? "is-compact" : ""}`}>
-      <input className="field locked-length-input" readOnly type="text" value="6 m" aria-label="长度固定为6米" />
+      <input className="field locked-length-input" readOnly type="text" value={formatLength(lengthM, locale)} aria-label={m.customSize.fixedLengthTip} />
       <span className="locked-length-badge" aria-hidden="true">
-        锁定
+        {m.customSize.locked}
       </span>
       <div className="locked-length-tip" role="note">
-        <p>现货常规长度为6米定尺。如需其他长度，请使用自定义尺寸。</p>
+        <p>{m.customSize.fixedLengthTip}</p>
         <button type="button" onClick={() => onAddCustomRow(productType)}>
-          使用自定义尺寸
+          {m.customSize.useCustomSize}
         </button>
       </div>
     </div>
@@ -1427,9 +1845,11 @@ function LockedLengthField({
 function QuantityInput({
   row,
   onUpdateRow,
+  locale = "zh",
 }: {
   row: MaterialRow;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  locale?: Locale;
 }) {
   return (
     <td>
@@ -1441,7 +1861,7 @@ function QuantityInput({
           value={row.quantity}
           onChange={(event) => onUpdateRow(row.id, { quantity: Number(event.target.value) })}
         />
-        <span className="text-xs text-slate-500">{row.quantityUnit}</span>
+        <span className="text-xs text-slate-500">{locale === "zh" ? row.quantityUnit : "pcs"}</span>
       </div>
     </td>
   );
@@ -1450,10 +1870,12 @@ function QuantityInput({
 function GroovedFittingFields({
   row,
   onUpdateRow,
+  m,
   isMobile = false,
 }: {
   row: Extract<MaterialRow, { productType: "grooved_fitting" }>;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  m: Messages;
   isMobile?: boolean;
 }) {
   const fittingTypes = uniqueBy(groovedFittingOptions, (item) => item.fittingTypeId);
@@ -1473,7 +1895,7 @@ function GroovedFittingFields({
         value={row.fittingTypeId}
         onChange={(event) => onUpdateRow(row.id, { fittingTypeId: event.target.value, nominalSizeId: "", modelId: "" })}
       >
-        <option value="">管件类型</option>
+        <option value="">{m.fields.fittingType}</option>
         {fittingTypes.map((item) => (
           <option key={item.fittingTypeId} value={item.fittingTypeId}>
             {item.fittingTypeLabel}
@@ -1488,7 +1910,7 @@ function GroovedFittingFields({
         value={row.nominalSizeId}
         onChange={(event) => onUpdateRow(row.id, { nominalSizeId: event.target.value, modelId: "" })}
       >
-        <option value="">公称尺寸</option>
+        <option value="">{m.fields.size}</option>
         {sizes.map((item) => (
           <option key={item.nominalSizeId} value={item.nominalSizeId}>
             {item.nominalSizeLabel}
@@ -1499,7 +1921,7 @@ function GroovedFittingFields({
 
   const modelField = (
     <select className="field" value={row.modelId} onChange={(event) => onUpdateRow(row.id, { modelId: event.target.value })}>
-        <option value="">型号或角度</option>
+        <option value="">{m.fields.modelOrAngle}</option>
         {models.map((item) => (
           <option key={`${item.fittingTypeId}-${item.nominalSizeId}-${item.modelId}`} value={item.modelId}>
             {item.modelLabel}
@@ -1512,15 +1934,15 @@ function GroovedFittingFields({
     return (
       <>
         <label className="mobile-field-label">
-          管件类型
+          {m.fields.fittingType}
           {fittingTypeField}
         </label>
         <label className="mobile-field-label">
-          公称尺寸
+          {m.fields.size}
           {sizeField}
         </label>
         <label className="mobile-field-label">
-          型号或角度
+          {m.fields.modelOrAngle}
           {modelField}
         </label>
       </>
@@ -1536,59 +1958,78 @@ function GroovedFittingFields({
   );
 }
 
-function WeightCell({ calculation }: { calculation: ReturnType<typeof calculateRow> }) {
+function WeightCell({
+  calculation,
+  locale,
+  m,
+}: {
+  calculation: ReturnType<typeof calculateRow>;
+  locale: Locale;
+  m: Messages;
+}) {
   if (!calculation.unitWeightKg) {
-    return <MissingWeight />;
+    return <MissingWeight m={m} />;
   }
 
   return (
     <span>
-      {formatNumber(calculation.unitWeightKg)} {calculation.unitWeightLabel}
+      {formatNumber(calculation.unitWeightKg, 2, locale)} {formatUnitWeightLabel(calculation.unitWeightLabel, locale)}
     </span>
   );
 }
 
-function MissingWeight() {
-  return <span className="missing-weight">重量待补充</span>;
+function MissingWeight({ m }: { m: Messages }) {
+  return <span className="missing-weight">{m.notices.weightPending}</span>;
 }
 
 function SummaryBar({
   summary,
   onOpenRfq,
+  locale,
+  m,
 }: {
   summary: ReturnType<typeof calculateSummary>;
   onOpenRfq: () => void;
+  locale: Locale;
+  m: Messages;
 }) {
   return (
     <footer className="summary-bar">
       <div className="summary-grid">
-        <SummaryItem label="品种数" value={summary.productModuleCount} />
-        <SummaryItem label="有效规格行数" value={summary.validRowCount} />
+        <SummaryItem label={m.summary.productCount} value={summary.productModuleCount} />
+        <SummaryItem label={m.summary.validSpecRows} value={summary.validRowCount} />
         <SummaryItem
-          label="总数量"
-          value={`${summary.totalQuantityPieces} 支 / ${summary.totalQuantityItems} 件`}
+          label={m.summary.totalQuantity}
+          value={`${formatQuantity(summary.totalQuantityPieces, "支", locale)} / ${formatQuantity(summary.totalQuantityItems, "件", locale)}`}
         />
-        <SummaryItem label="理论总重量" value={`${formatNumber(summary.totalWeightTon)} 吨`} strong />
-        <SummaryItem label="缺少重量" value={`${summary.missingWeightRowCount} 行`} warning={summary.missingWeightRowCount > 0} />
+        <SummaryItem label={m.summary.theoreticalWeight} value={formatTonFromKg(summary.totalWeightKg, locale, m.notices.weightPending)} strong />
+        <SummaryItem
+          label={m.summary.missingWeight}
+          value={`${summary.missingWeightRowCount} ${m.summary.missingRowsSuffix}`}
+          warning={summary.missingWeightRowCount > 0}
+        />
         <div className="min-w-0">
-          <p className="text-xs text-blue-100">40HQ集装箱估算</p>
+          <p className="text-xs text-blue-100">{m.summary.containerEstimate}</p>
           <p className="truncate text-base font-bold text-white">
             {summary.containerCount > 0
-              ? `预计 ${summary.containerCount} × 40HQ，${
+              ? `${m.summary.estimated} ${summary.containerCount} × 40HQ，${
                   summary.remainingCapacityTon === 0
-                    ? "已达到设定载重"
-                    : `还可装 ${formatNumber(summary.remainingCapacityTon ?? 0)} 吨`
+                    ? m.summary.capacityReached
+                    : `${m.summary.remainingCapacity} ${formatNumber(summary.remainingCapacityTon ?? 0, 2, locale)} ${
+                        locale === "zh" ? "吨" : "t"
+                      }`
                 }`
-              : "预计 0 × 40HQ"}
+              : `${m.summary.estimated} 0 × 40HQ`}
           </p>
         </div>
         <button className="primary-button h-12" type="button" onClick={onOpenRfq}>
-          生成询盘
+          {m.summary.generateRfq}
         </button>
       </div>
       <p className="mt-2 text-xs text-blue-100">
-        集装箱数量仅按设定重量估算。实际装载还会受到产品长度、体积、包装方式、装柜方法以及当地运输限重影响。设定载重：
-        {CONTAINER_40HQ_TON} 吨 / 40HQ。
+        {m.container.note}
+        {locale === "zh" ? "。" : " "}
+        {m.container.configuredLoad}：{formatNumber(CONTAINER_40HQ_TON, 1, locale)} {locale === "zh" ? "吨" : "t"} / 40HQ.
       </p>
     </footer>
   );
@@ -1624,6 +2065,8 @@ function RfqModal({
   copied,
   onCopy,
   onClose,
+  locale,
+  m,
 }: {
   customer: CustomerInfo;
   setCustomer: (value: CustomerInfo) => void;
@@ -1633,49 +2076,51 @@ function RfqModal({
   copied: boolean;
   onCopy: () => void;
   onClose: () => void;
+  locale: Locale;
+  m: Messages;
 }) {
   function updateCustomer(key: string, value: string) {
     setCustomer({ ...customer, [key]: value });
   }
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="询盘预览">
+    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={m.inquiry.title}>
       <div className="modal-panel">
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
           <div>
-            <h2 className="text-xl font-bold text-slate-950">询盘预览</h2>
-            <p className="text-sm text-slate-500">第一版仅生成和复制询盘内容，暂不连接真实发送服务。</p>
+            <h2 className="text-xl font-bold text-slate-950">{m.inquiry.title}</h2>
+            <p className="text-sm text-slate-500">{m.inquiry.intro}</p>
           </div>
           <button className="secondary-button" type="button" onClick={onClose}>
-            关闭
+            {m.actions.close}
           </button>
         </div>
 
         <div className="grid gap-5 py-5 lg:grid-cols-[1.1fr_.9fr]">
           <section className="rfq-preview-list">
             <div className="mb-4 grid gap-3 sm:grid-cols-3">
-              <SummaryTile label="理论总重量" value={`${formatNumber(summary.totalWeightTon)} 吨`} />
-              <SummaryTile label="40HQ估算" value={`${summary.containerCount} × 40HQ`} />
-              <SummaryTile label="缺少重量" value={`${summary.missingWeightRowCount} 行`} />
+              <SummaryTile label={m.summary.theoreticalWeight} value={formatTonFromKg(summary.totalWeightKg, locale, m.notices.weightPending)} />
+              <SummaryTile label={m.summary.containerEstimate} value={`${summary.containerCount} × 40HQ`} />
+              <SummaryTile label={m.summary.missingWeight} value={`${summary.missingWeightRowCount} ${m.summary.missingRowsSuffix}`} />
             </div>
             <div className="space-y-4">
               {materialList.modules.length === 0 ? (
-                <p className="text-sm text-slate-500">当前材料清单为空。</p>
+                <p className="text-sm text-slate-500">{m.materialList.currentListEmpty}</p>
               ) : (
                 materialList.modules.map((module) => (
                   <div key={module.id} className="rounded-md border border-slate-200 bg-white p-3">
-                    <p className="mb-2 font-bold text-slate-950">{productName(module.productType)}</p>
+                    <p className="mb-2 font-bold text-slate-950">{productName(module.productType, m)}</p>
                     <div className="space-y-2">
                       {module.rows.map((row) => {
                         const calc = calculateRow(row);
                         return (
                           <div key={row.id} className="flex items-start justify-between gap-3 text-sm">
                             <span className="text-slate-600">
-                              {getRowDescription(row) || "规格待选择"}，数量 {row.quantity}
-                              {row.quantityUnit}
+                              {getRowDescription(row, locale, m) || m.materialList.specPending}，{m.fields.quantity}{" "}
+                              {formatQuantity(row.quantity, row.quantityUnit, locale)}
                             </span>
                             <span className="shrink-0 font-semibold text-slate-950">
-                              {calc.hasWeight ? formatTonFromKg(calc.totalWeightKg) : "重量待补充"}
+                              {calc.hasWeight ? formatTonFromKg(calc.totalWeightKg, locale, m.notices.weightPending) : m.notices.weightPending}
                             </span>
                           </div>
                         );
@@ -1689,15 +2134,15 @@ function RfqModal({
 
           <section className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
-              <CustomerInput label="客户姓名" value={customer.name} onChange={(value) => updateCustomer("name", value)} />
-              <CustomerInput label="公司名称" value={customer.company} onChange={(value) => updateCustomer("company", value)} />
-              <CustomerInput label="国家/地区" value={customer.country} onChange={(value) => updateCustomer("country", value)} />
-              <CustomerInput label="WhatsApp" value={customer.whatsapp} onChange={(value) => updateCustomer("whatsapp", value)} />
-              <CustomerInput label="邮箱" value={customer.email} onChange={(value) => updateCustomer("email", value)} />
-              <CustomerInput label="目的港" value={customer.port} onChange={(value) => updateCustomer("port", value)} />
+              <CustomerInput label={m.inquiry.customerName} value={customer.name} onChange={(value) => updateCustomer("name", value)} />
+              <CustomerInput label={m.inquiry.companyName} value={customer.company} onChange={(value) => updateCustomer("company", value)} />
+              <CustomerInput label={m.inquiry.country} value={customer.country} onChange={(value) => updateCustomer("country", value)} />
+              <CustomerInput label={m.inquiry.whatsapp} value={customer.whatsapp} onChange={(value) => updateCustomer("whatsapp", value)} />
+              <CustomerInput label={m.inquiry.email} value={customer.email} onChange={(value) => updateCustomer("email", value)} />
+              <CustomerInput label={m.inquiry.destinationPort} value={customer.port} onChange={(value) => updateCustomer("port", value)} />
             </div>
             <label className="mobile-field-label">
-              补充要求
+              {m.inquiry.notes}
               <textarea
                 className="field min-h-24"
                 value={customer.notes}
@@ -1706,7 +2151,7 @@ function RfqModal({
             </label>
             <textarea className="rfq-textarea" readOnly value={rfqText} />
             <button className="primary-button w-full justify-center py-3" type="button" onClick={onCopy}>
-              {copied ? "已复制询盘内容" : "复制询盘内容"}
+              {copied ? m.inquiry.copied : m.inquiry.copyContent}
             </button>
           </section>
         </div>
