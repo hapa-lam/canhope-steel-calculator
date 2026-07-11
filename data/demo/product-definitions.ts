@@ -63,7 +63,7 @@ export const productDefinitions: ProductDefinition[] = [
   },
   {
     type: "grooved_fitting",
-    name: "沟槽管件",
+    name: "沟槽配件",
     englishName: "Grooved Fittings",
     category: "消防配件",
   },

@@ -120,8 +120,16 @@ export type GroovedFittingRow = {
   id: string;
   productType: "grooved_fitting";
   fittingTypeId: string;
-  nominalSizeId: string;
-  modelId: string;
+  specification: string;
+  pressureRatingMpa: number;
+  finishedWeightKg?: number | null;
+  threadedOutlet?: boolean;
+  boltSpec?: string | null;
+  cartonNumber?: number | null;
+  cartonSize?: string | null;
+  packingQuantityPcs?: number | null;
+  cartonWeightKg?: number | null;
+  note?: string | null;
   quantity: number;
   quantityUnit: "件";
 };
@@ -149,9 +157,9 @@ export type MaterialList = {
 export type RowCalculation = {
   rowId: string;
   hasWeight: boolean;
-  unitWeightKg?: number;
+  unitWeightKg?: number | null;
   unitWeightLabel: "kg/m" | "kg/件";
-  pieceWeightKg?: number;
+  pieceWeightKg?: number | null;
   totalWeightKg?: number;
 };
 

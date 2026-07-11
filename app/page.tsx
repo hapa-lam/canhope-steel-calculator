@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { contactConfig } from "@/config/contact";
 import { productDefinitions } from "@/data/demo/product-definitions";
-import { groovedFittingOptions } from "@/data/demo/steel-specs";
 import {
   angleSteelSpecifications,
   getAngleSteelThicknessId,
@@ -25,6 +24,14 @@ import {
   galvanizedSheetPipeData,
   getGalvanizedSheetPipeThicknessId,
 } from "@/data/galvanized-sheet-pipe/galvanized-sheet-pipe-data";
+import {
+  findGroovedFittingRecord,
+  getFirstGroovedFittingRecord,
+  getGroovedFittingRecordId,
+  groovedFittingProducts,
+  groovedFittingRecords,
+  type GroovedFittingRecord,
+} from "@/data/grooved-fittings/grooved-fittings-data";
 import { iBeamData } from "@/data/i-beam/i-beam-data";
 import { roundSteelBarData } from "@/data/round-steel-bar/round-steel-bar-data";
 import {
@@ -68,6 +75,8 @@ import type {
   SquareTubeProductType,
   SteelPipeProductType,
 } from "@/types/materials";
+
+type RowUpdates = Record<string, string | number | boolean | null | undefined>;
 
 const STORAGE_KEY = "canhope-steel-calculator-material-list";
 const LOCALE_STORAGE_KEY = "steel-calculator-locale";
@@ -192,6 +201,67 @@ function getDefaultFlatSteelBarSelection() {
     specId: firstSpec?.id ?? "",
     thicknessId: firstThickness ? getFlatSteelBarThicknessId(firstThickness.thicknessMm) : "",
   };
+}
+
+function getGroovedFittingRecordSnapshot(record: GroovedFittingRecord | null) {
+  return {
+    fittingTypeId: record?.productId ?? "",
+    specification: record?.specification ?? "",
+    pressureRatingMpa: record?.pressureRatingMpa ?? 0,
+    finishedWeightKg: record?.finishedWeightKg ?? null,
+    threadedOutlet: record?.threadedOutlet ?? false,
+    boltSpec: record?.boltSpec ?? null,
+    cartonNumber: record?.cartonNumber ?? null,
+    cartonSize: record?.cartonSize ?? null,
+    packingQuantityPcs: record?.packingQuantityPcs ?? null,
+    cartonWeightKg: record?.cartonWeightKg ?? null,
+    note: record?.note ?? null,
+  };
+}
+
+function getSelectedGroovedFittingRecord(row: Extract<MaterialRow, { productType: "grooved_fitting" }>) {
+  return (
+    findGroovedFittingRecord(
+      row.fittingTypeId,
+      row.specification,
+      row.pressureRatingMpa,
+    ) ?? null
+  );
+}
+
+function getDefaultGroovedFittingSelection(fittingTypeId?: string) {
+  return getGroovedFittingRecordSnapshot(getFirstGroovedFittingRecord(fittingTypeId));
+}
+
+function migrateGroovedFittingTypeId(fittingTypeId: string, legacyFlangeType?: unknown) {
+  if (fittingTypeId !== "ab_type_flange") {
+    return fittingTypeId;
+  }
+
+  return legacyFlangeType === "B" ? "type_b_grooved_flange" : "type_a_grooved_flange";
+}
+
+function getGroovedFittingProductLabel(productId: string, locale: Locale) {
+  const product = groovedFittingProducts.find((item) => item.id === productId);
+  if (!product) {
+    return productId;
+  }
+
+  return locale === "zh" ? product.nameZh : product.nameEn;
+}
+
+function formatPressureRating(value: number, locale: Locale) {
+  return value > 0 ? `${formatNumber(value, 1, locale)} MPa` : "";
+}
+
+function formatGroovedFittingSpecOption(record: GroovedFittingRecord, locale: Locale) {
+  const sameSpecCount = groovedFittingRecords.filter(
+    (item) => item.productId === record.productId && item.specification === record.specification,
+  ).length;
+
+  return sameSpecCount > 1
+    ? `${record.specification} · ${formatPressureRating(record.pressureRatingMpa, locale)}`
+    : record.specification;
 }
 
 type StandardOptionMode = "thickness" | "referenceWeight";
@@ -319,12 +389,12 @@ function createEmptyRow(productType: ProductType): MaterialRow {
     };
   }
 
+  const groovedSelection = getDefaultGroovedFittingSelection();
+
   return {
     id,
     productType,
-    fittingTypeId: "",
-    nominalSizeId: "",
-    modelId: "",
+    ...groovedSelection,
     quantity: 0,
     quantityUnit: "件",
   };
@@ -425,6 +495,16 @@ function formatSummaryQuantity(totalLengths: number, totalItems: number, locale:
   }
 
   return `${formatNumber(totalLengths, 0, locale)} lengths / ${formatNumber(totalItems, 0, locale)} items`;
+}
+
+function normalizeQuantityInput(value: string) {
+  const digitsOnly = value.match(/^\d+/)?.[0] ?? "";
+
+  if (!digitsOnly) {
+    return "";
+  }
+
+  return String(Number(digitsOnly));
 }
 
 function categoryName(category: (typeof categories)[number], m: Messages) {
@@ -768,22 +848,59 @@ function getRowDescription(row: MaterialRow, locale: Locale, m: Messages) {
       .join(" / ");
   }
 
-  const option = groovedFittingOptions.find(
-    (item) =>
-      item.fittingTypeId === row.fittingTypeId &&
-      item.nominalSizeId === row.nominalSizeId &&
-      item.modelId === row.modelId,
-  );
+  if (row.productType === "grooved_fitting") {
+    return [
+      getGroovedFittingProductLabel(row.fittingTypeId, locale),
+      row.specification,
+      formatPressureRating(row.pressureRatingMpa, locale),
+      row.threadedOutlet ? m.fields.threadedOutlet : "",
+    ]
+      .filter(Boolean)
+      .join(" / ");
+  }
 
-  return option
-    ? `${option.fittingTypeLabel} / ${option.nominalSizeLabel} / ${option.modelLabel}`
-    : [row.fittingTypeId, row.nominalSizeId, row.modelId].filter(Boolean).join(" / ");
+  return "";
 }
 
-function uniqueBy<T>(items: T[], key: (item: T) => string) {
-  return items.filter((item, index) => {
-    return items.findIndex((candidate) => key(candidate) === key(item)) === index;
-  });
+function getGroovedFittingRfqLines(
+  row: Extract<MaterialRow, { productType: "grooved_fitting" }>,
+  calc: ReturnType<typeof calculateRow>,
+  locale: Locale,
+  m: Messages,
+) {
+  const record = getSelectedGroovedFittingRecord(row) ?? row;
+  const baseLines = locale === "zh"
+    ? [
+        `${m.fields.fittingType}：${getGroovedFittingProductLabel(row.fittingTypeId, locale)}`,
+        `${m.fields.spec}：${row.specification}`,
+        `${m.fields.pressureRating}：${formatPressureRating(row.pressureRatingMpa, locale)}`,
+        row.threadedOutlet ? `${m.fields.threadedOutlet}：${m.fields.threadedOutlet}` : "",
+        `${m.fields.finishedWeight}：${calc.hasWeight ? formatKg(calc.pieceWeightKg, locale, m.notices.weightToConfirm) : m.notices.weightToConfirm}`,
+        `${m.fields.quantity}：${formatQuantity(row.quantity, row.quantityUnit, locale)}`,
+        `${m.fields.totalWeight}：${calc.hasWeight ? formatTonFromKg(calc.totalWeightKg, locale, m.notices.weightToConfirm) : m.notices.weightToConfirm}`,
+      ]
+    : [
+        `${m.fields.fittingType}: ${getGroovedFittingProductLabel(row.fittingTypeId, locale)}`,
+        `${m.fields.spec}: ${row.specification}`,
+        `${m.fields.pressureRating}: ${formatPressureRating(row.pressureRatingMpa, locale)}`,
+        row.threadedOutlet ? `${m.fields.threadedOutlet}: ${m.fields.threadedOutlet}` : "",
+        `${m.fields.finishedWeight}: ${calc.hasWeight ? formatKg(calc.pieceWeightKg, locale, m.notices.weightToConfirm) : m.notices.weightToConfirm}`,
+        `${m.fields.quantity}: ${formatQuantity(row.quantity, row.quantityUnit, locale)}`,
+        `${m.fields.totalWeight}: ${calc.hasWeight ? formatTonFromKg(calc.totalWeightKg, locale, m.notices.weightToConfirm) : m.notices.weightToConfirm}`,
+      ];
+  const separator = locale === "zh" ? "：" : ": ";
+  const packingLines = [
+    [m.fields.boltSpec, record.boltSpec],
+    [m.fields.cartonNumber, record.cartonNumber],
+    [m.fields.cartonSize, record.cartonSize],
+    [m.fields.packingQuantity, record.packingQuantityPcs ? formatPackingQuantity(record.packingQuantityPcs, locale, m) : ""],
+    [m.fields.cartonWeight, record.cartonWeightKg ? formatCartonWeight(record.cartonWeightKg, locale, m) : ""],
+    [m.fields.note, record.note],
+  ]
+    .filter(([, value]) => value !== null && value !== undefined && value !== "")
+    .map(([label, value]) => `${label}${separator}${value}`);
+
+  return [...baseLines, ...packingLines].filter(Boolean);
 }
 
 function normalizeStoredMaterialList(value: MaterialList): MaterialList {
@@ -896,6 +1013,30 @@ function normalizeStoredMaterialList(value: MaterialList): MaterialList {
             ...normalizedRow,
             dimensionMode,
             lengthM,
+            quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
+          };
+        }
+
+        if (normalizedRow.productType === "grooved_fitting") {
+          const legacyFlangeType =
+            "flangeType" in normalizedRow
+              ? (normalizedRow as { flangeType?: unknown }).flangeType
+              : undefined;
+          const fittingTypeId = migrateGroovedFittingTypeId(
+            normalizedRow.fittingTypeId,
+            legacyFlangeType,
+          );
+          const candidateRecord =
+            findGroovedFittingRecord(
+              fittingTypeId,
+              normalizedRow.specification,
+              normalizedRow.pressureRatingMpa,
+            ) ?? getFirstGroovedFittingRecord(fittingTypeId);
+          const snapshot = getGroovedFittingRecordSnapshot(candidateRecord);
+
+          return {
+            ...normalizedRow,
+            ...snapshot,
             quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
           };
         }
@@ -1057,6 +1198,12 @@ export default function Home() {
         lines.push(`\n${productName(module.productType, m)}`);
         module.rows.forEach((row, index) => {
           const calc = calculateRow(row);
+          if (row.productType === "grooved_fitting") {
+            lines.push(`${index + 1}. ${productName(row.productType, m)}`);
+            getGroovedFittingRfqLines(row, calc, locale, m).forEach((line) => lines.push(`   ${line}`));
+            return;
+          }
+
           const description = getRowDescription(row, locale, m) || m.materialList.specPending;
           lines.push(`${index + 1}. ${description}`);
           if ("lengthM" in row) {
@@ -1113,6 +1260,12 @@ export default function Home() {
       lines.push(`\n${productName(module.productType, m)}`);
       module.rows.forEach((row, index) => {
         const calc = calculateRow(row);
+        if (row.productType === "grooved_fitting") {
+          lines.push(`${index + 1}. ${productName(row.productType, m)}`);
+          getGroovedFittingRfqLines(row, calc, locale, m).forEach((line) => lines.push(`   ${line}`));
+          return;
+        }
+
         const description = getRowDescription(row, locale, m) || m.materialList.specPending;
         const length = "lengthM" in row ? `，${m.fields.length} ${formatLength(getDisplayLengthM(row), locale)}` : "";
         const pieceWeight =
@@ -1228,7 +1381,7 @@ export default function Home() {
     }, 80);
   }
 
-  function updateRow(rowId: string, updates: Record<string, string | number>) {
+  function updateRow(rowId: string, updates: RowUpdates) {
     setMaterialList((current) => ({
       modules: current.modules.map((module) => ({
         ...module,
@@ -1459,7 +1612,7 @@ function ProductModule({
   onAddRow: (productType: ProductType) => void;
   onAddCustomRow: (productType: CustomSizeProductType) => void;
   onDeleteModule: (moduleId: string) => void;
-  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  onUpdateRow: (rowId: string, updates: RowUpdates) => void;
   onDeleteRow: (moduleId: string, rowId: string) => void;
   onDuplicateRow: (moduleId: string, row: MaterialRow) => void;
   locale: Locale;
@@ -1608,7 +1761,17 @@ function ProductTableHead({ productType, m }: { productType: ProductType; m: Mes
                     m.fields.totalWeight,
                     m.fields.action,
                   ]
-          : [m.fields.fittingType, m.fields.size, m.fields.modelOrAngle, ...commonEnd];
+          : [
+              m.fields.fittingType,
+              m.fields.spec,
+              m.fields.threadedOutlet,
+              m.fields.quantity,
+              m.fields.packingQuantity,
+              m.fields.packingDetails,
+              m.fields.finishedWeight,
+              m.fields.totalWeight,
+              m.fields.action,
+            ];
 
   return (
     <thead>
@@ -1633,7 +1796,7 @@ function ProductRow({
 }: {
   row: MaterialRow;
   moduleId: string;
-  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  onUpdateRow: (rowId: string, updates: RowUpdates) => void;
   onDeleteRow: (moduleId: string, rowId: string) => void;
   onDuplicateRow: (moduleId: string, row: MaterialRow) => void;
   onAddCustomRow: (productType: CustomSizeProductType) => void;
@@ -2086,13 +2249,36 @@ function ProductRow({
     );
   }
 
-  return (
-    <tr>
-      <GroovedFittingFields row={row} onUpdateRow={onUpdateRow} m={m} />
-      <QuantityInput row={row} onUpdateRow={onUpdateRow} locale={locale} />
-      {actionCells}
-    </tr>
-  );
+  if (row.productType === "grooved_fitting") {
+    const selectedRecord = getSelectedGroovedFittingRecord(row);
+
+    return (
+      <tr>
+        <GroovedFittingFields row={row} onUpdateRow={onUpdateRow} locale={locale} m={m} />
+        <QuantityInput row={row} onUpdateRow={onUpdateRow} locale={locale} />
+        <td>{formatPackingQuantity(row.packingQuantityPcs, locale, m)}</td>
+        <td>
+          <PackingDetails record={selectedRecord ?? row} locale={locale} m={m} />
+        </td>
+        <td>{calc.hasWeight ? formatKg(calc.pieceWeightKg, locale, m.notices.weightToConfirm) : <MissingWeight m={m} />}</td>
+        <td className="font-bold text-slate-950">
+          {calc.hasWeight ? formatTonFromKg(calc.totalWeightKg, locale, m.notices.weightToConfirm) : <MissingWeight m={m} />}
+        </td>
+        <td>
+          <div className="row-actions">
+            <button type="button" onClick={() => onDuplicateRow(moduleId, row)}>
+              {m.actions.copy}
+            </button>
+            <button type="button" onClick={() => onDeleteRow(moduleId, row.id)}>
+              {m.actions.delete}
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
+  }
+
+  return null;
 }
 
 function MobileRowCard({
@@ -2107,7 +2293,7 @@ function MobileRowCard({
 }: {
   row: MaterialRow;
   moduleId: string;
-  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  onUpdateRow: (rowId: string, updates: RowUpdates) => void;
   onDeleteRow: (moduleId: string, rowId: string) => void;
   onDuplicateRow: (moduleId: string, row: MaterialRow) => void;
   onAddCustomRow: (productType: CustomSizeProductType) => void;
@@ -2169,7 +2355,7 @@ function ProductRowFields({
   m,
 }: {
   row: MaterialRow;
-  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  onUpdateRow: (rowId: string, updates: RowUpdates) => void;
   onAddCustomRow: (productType: CustomSizeProductType) => void;
   locale: Locale;
   m: Messages;
@@ -2390,16 +2576,18 @@ function ProductRowFields({
 
   return (
     <>
-      <GroovedFittingFields row={row} onUpdateRow={onUpdateRow} isMobile m={m} />
+      <GroovedFittingFields row={row} onUpdateRow={onUpdateRow} isMobile locale={locale} m={m} />
       <label className="mobile-field-label">
         {m.fields.quantity}
-        <input
+        <QuantityField
           className="field"
-          min="0"
-          type="number"
-          value={row.quantity}
-          onChange={(event) => onUpdateRow(row.id, { quantity: Number(event.target.value) })}
+          quantity={row.quantity}
+          onChange={(quantity) => onUpdateRow(row.id, { quantity })}
         />
+      </label>
+      <label className="mobile-field-label">
+        {m.fields.packingDetails}
+        <PackingDetails record={getSelectedGroovedFittingRecord(row) ?? row} locale={locale} m={m} />
       </label>
     </>
   );
@@ -2413,7 +2601,7 @@ function MobileLengthQuantity({
   m,
 }: {
   row: Exclude<MaterialRow, { productType: "grooved_fitting" }>;
-  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  onUpdateRow: (rowId: string, updates: RowUpdates) => void;
   onAddCustomRow?: (productType: CustomSizeProductType) => void;
   locale: Locale;
   m: Messages;
@@ -2445,12 +2633,10 @@ function MobileLengthQuantity({
       </label>
       <label className="mobile-field-label">
         {m.fields.quantity}
-        <input
+        <QuantityField
           className="field"
-          min="0"
-          type="number"
-          value={row.quantity}
-          onChange={(event) => onUpdateRow(row.id, { quantity: Number(event.target.value) })}
+          quantity={row.quantity}
+          onChange={(quantity) => onUpdateRow(row.id, { quantity })}
         />
       </label>
     </>
@@ -2463,7 +2649,7 @@ function CustomRoundCells({
   m,
 }: {
   row: Extract<MaterialRow, { productType: SteelPipeProductType }>;
-  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  onUpdateRow: (rowId: string, updates: RowUpdates) => void;
   m: Messages;
 }) {
   return (
@@ -2498,7 +2684,7 @@ function CustomSquareCells({
   m,
 }: {
   row: Extract<MaterialRow, { productType: SquareTubeProductType }>;
-  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  onUpdateRow: (rowId: string, updates: RowUpdates) => void;
   m: Messages;
 }) {
   return (
@@ -2538,7 +2724,7 @@ function CustomAngleCells({
   m,
 }: {
   row: Extract<MaterialRow, { productType: "angle_steel" }>;
-  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  onUpdateRow: (rowId: string, updates: RowUpdates) => void;
   m: Messages;
 }) {
   return (
@@ -2578,7 +2764,7 @@ function CustomRoundSteelBarCells({
   m,
 }: {
   row: RoundSteelBarRow;
-  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  onUpdateRow: (rowId: string, updates: RowUpdates) => void;
   m: Messages;
 }) {
   return (
@@ -2601,7 +2787,7 @@ function CustomFlatSteelBarCells({
   m,
 }: {
   row: FlatSteelBarRow;
-  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  onUpdateRow: (rowId: string, updates: RowUpdates) => void;
   m: Messages;
 }) {
   return (
@@ -3039,7 +3225,7 @@ function LengthInput({
   m,
 }: {
   row: Exclude<MaterialRow, { productType: "grooved_fitting" }>;
-  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  onUpdateRow: (rowId: string, updates: RowUpdates) => void;
   onAddCustomRow?: (productType: CustomSizeProductType) => void;
   locale?: Locale;
   m: Messages;
@@ -3113,18 +3299,16 @@ function QuantityInput({
   locale = "zh",
 }: {
   row: MaterialRow;
-  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  onUpdateRow: (rowId: string, updates: RowUpdates) => void;
   locale?: Locale;
 }) {
   return (
     <td>
       <div className="flex items-center gap-2">
-        <input
+        <QuantityField
           className="field w-20"
-          min="0"
-          type="number"
-          value={row.quantity}
-          onChange={(event) => onUpdateRow(row.id, { quantity: Number(event.target.value) })}
+          quantity={row.quantity}
+          onChange={(quantity) => onUpdateRow(row.id, { quantity })}
         />
         <span className="text-xs text-slate-500">{locale === "zh" ? row.quantityUnit : "pcs"}</span>
       </div>
@@ -3132,67 +3316,109 @@ function QuantityInput({
   );
 }
 
+function QuantityField({
+  quantity,
+  onChange,
+  className,
+}: {
+  quantity: number;
+  onChange: (quantity: number) => void;
+  className: string;
+}) {
+  const [displayValue, setDisplayValue] = useState(String(Number.isFinite(quantity) ? quantity : 0));
+
+  return (
+    <input
+      className={className}
+      inputMode="numeric"
+      pattern="[0-9]*"
+      type="text"
+      value={displayValue}
+      onBlur={(event) => {
+        if (event.currentTarget.value === "") {
+          setDisplayValue("0");
+          onChange(0);
+        }
+      }}
+      onChange={(event) => {
+        const normalized = normalizeQuantityInput(event.target.value);
+        setDisplayValue(normalized);
+        if (normalized !== "") {
+          onChange(Number(normalized));
+        }
+      }}
+      onFocus={(event) => {
+        if (event.currentTarget.value === "0") {
+          event.currentTarget.select();
+        }
+      }}
+      onKeyDown={(event) => {
+        if ((event.key === "Enter" || event.key === "Tab") && event.currentTarget.value === "") {
+          setDisplayValue("0");
+          onChange(0);
+        }
+      }}
+    />
+  );
+}
+
 function GroovedFittingFields({
   row,
   onUpdateRow,
+  locale,
   m,
   isMobile = false,
 }: {
   row: Extract<MaterialRow, { productType: "grooved_fitting" }>;
-  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  onUpdateRow: (rowId: string, updates: RowUpdates) => void;
+  locale: Locale;
   m: Messages;
   isMobile?: boolean;
 }) {
-  const fittingTypes = uniqueBy(groovedFittingOptions, (item) => item.fittingTypeId);
-  const sizes = uniqueBy(
-    groovedFittingOptions.filter((item) => !row.fittingTypeId || item.fittingTypeId === row.fittingTypeId),
-    (item) => item.nominalSizeId,
-  );
-  const models = groovedFittingOptions.filter(
-    (item) =>
-      (!row.fittingTypeId || item.fittingTypeId === row.fittingTypeId) &&
-      (!row.nominalSizeId || item.nominalSizeId === row.nominalSizeId),
-  );
+  const specificationRecords = groovedFittingRecords.filter((item) => item.productId === row.fittingTypeId);
+
+  const applyRecord = (record: GroovedFittingRecord | null) => {
+    onUpdateRow(row.id, getGroovedFittingRecordSnapshot(record));
+  };
 
   const fittingTypeField = (
-      <select
-        className="field"
-        value={row.fittingTypeId}
-        onChange={(event) => onUpdateRow(row.id, { fittingTypeId: event.target.value, nominalSizeId: "", modelId: "" })}
-      >
-        <option value="">{m.fields.fittingType}</option>
-        {fittingTypes.map((item) => (
-          <option key={item.fittingTypeId} value={item.fittingTypeId}>
-            {item.fittingTypeLabel}
-          </option>
-        ))}
-      </select>
-  );
-
-  const sizeField = (
     <select
-        className="field"
-        value={row.nominalSizeId}
-        onChange={(event) => onUpdateRow(row.id, { nominalSizeId: event.target.value, modelId: "" })}
-      >
-        <option value="">{m.fields.size}</option>
-        {sizes.map((item) => (
-          <option key={item.nominalSizeId} value={item.nominalSizeId}>
-            {item.nominalSizeLabel}
-          </option>
-        ))}
-      </select>
+      className="field"
+      value={row.fittingTypeId}
+      onChange={(event) => applyRecord(getFirstGroovedFittingRecord(event.target.value))}
+    >
+      {groovedFittingProducts.map((item) => (
+        <option key={item.id} value={item.id}>
+          {locale === "zh" ? item.nameZh : item.nameEn}
+        </option>
+      ))}
+    </select>
   );
 
-  const modelField = (
-    <select className="field" value={row.modelId} onChange={(event) => onUpdateRow(row.id, { modelId: event.target.value })}>
-        <option value="">{m.fields.modelOrAngle}</option>
-        {models.map((item) => (
-          <option key={`${item.fittingTypeId}-${item.nominalSizeId}-${item.modelId}`} value={item.modelId}>
-            {item.modelLabel}
-          </option>
-        ))}
-      </select>
+  const specificationField = (
+    <select
+      className="field"
+      value={getGroovedFittingRecordId(row)}
+      onChange={(event) => {
+        const nextRecord =
+          specificationRecords.find((item) => getGroovedFittingRecordId(item) === event.target.value) ?? null;
+        applyRecord(nextRecord);
+      }}
+    >
+      {specificationRecords.map((item) => (
+        <option key={getGroovedFittingRecordId(item)} value={getGroovedFittingRecordId(item)}>
+          {formatGroovedFittingSpecOption(item, locale)}
+        </option>
+      ))}
+    </select>
+  );
+
+  const threadedOutletField = row.threadedOutlet ? (
+    <span className="inline-flex rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700">
+      {m.fields.threadedOutlet}
+    </span>
+  ) : (
+    <span className="text-slate-400">—</span>
   );
 
   if (isMobile) {
@@ -3203,12 +3429,12 @@ function GroovedFittingFields({
           {fittingTypeField}
         </label>
         <label className="mobile-field-label">
-          {m.fields.size}
-          {sizeField}
+          {m.fields.spec}
+          {specificationField}
         </label>
         <label className="mobile-field-label">
-          {m.fields.modelOrAngle}
-          {modelField}
+          {m.fields.threadedOutlet}
+          {threadedOutletField}
         </label>
       </>
     );
@@ -3217,9 +3443,62 @@ function GroovedFittingFields({
   return (
     <>
       <td>{fittingTypeField}</td>
-      <td>{sizeField}</td>
-      <td>{modelField}</td>
+      <td>{specificationField}</td>
+      <td>{threadedOutletField}</td>
     </>
+  );
+}
+
+function formatPackingQuantity(value: number | null | undefined, locale: Locale, m: Messages) {
+  if (!value) {
+    return m.notices.notProvidedShort;
+  }
+
+  return locale === "zh" ? `${formatNumber(value, 0, locale)} 个/箱` : `${formatNumber(value, 0, locale)} pcs/carton`;
+}
+
+function formatCartonWeight(value: number | null | undefined, locale: Locale, m: Messages) {
+  if (!value) {
+    return m.notices.notProvidedShort;
+  }
+
+  return locale === "zh" ? `${formatNumber(value, 2, locale)} kg/箱` : `${formatNumber(value, 2, locale)} kg/carton`;
+}
+
+function PackingDetails({
+  record,
+  locale,
+  m,
+}: {
+  record: Partial<GroovedFittingRecord>;
+  locale: Locale;
+  m: Messages;
+}) {
+  const details = [
+    [m.fields.boltSpec, record.boltSpec],
+    [m.fields.cartonNumber, record.cartonNumber],
+    [m.fields.cartonSize, record.cartonSize],
+    [m.fields.packingQuantity, formatPackingQuantity(record.packingQuantityPcs, locale, m)],
+    [m.fields.cartonWeight, formatCartonWeight(record.cartonWeightKg, locale, m)],
+    [m.fields.note, record.note],
+  ].filter(([, value]) => value !== null && value !== undefined && value !== "" && value !== m.notices.notProvidedShort);
+
+  if (details.length === 0) {
+    return <span className="text-slate-400">—</span>;
+  }
+
+  return (
+    <details className="packing-details">
+      <summary>{m.fields.packingDetails}</summary>
+      <dl>
+        {details.map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </details>
   );
 }
 
@@ -3244,7 +3523,7 @@ function WeightCell({
 }
 
 function MissingWeight({ m }: { m: Messages }) {
-  return <span className="missing-weight">{m.notices.weightPending}</span>;
+  return <span className="missing-weight">{m.notices.weightToConfirm}</span>;
 }
 
 function SummaryBar({

@@ -1,9 +1,9 @@
-import { groovedFittingOptions } from "@/data/demo/steel-specs";
 import { findAngleSteelReference } from "@/data/angle-steel/angle-steel-data";
 import { findChannelSteelReference } from "@/data/channel-steel/channel-steel-data";
 import { findFlatSteelBarReference } from "@/data/flat-steel-bar/flat-steel-bar-data";
 import { findGalvanizedPipeReference } from "@/data/galvanized-pipe/galvanized-pipe-data";
 import { findGalvanizedSheetPipeReference } from "@/data/galvanized-sheet-pipe/galvanized-sheet-pipe-data";
+import { findGroovedFittingRecord } from "@/data/grooved-fittings/grooved-fittings-data";
 import { findIBeamReference } from "@/data/i-beam/i-beam-data";
 import { findRoundSteelBarReference } from "@/data/round-steel-bar/round-steel-bar-data";
 import { findBlackSteelPipeReference } from "@/data/black-steel-pipe/black-steel-pipe-data";
@@ -40,14 +40,13 @@ function isSquareTubeProduct(type: string): type is SquareTubeProductType {
 
 export function calculateRow(row: MaterialRow): RowCalculation {
   if (row.productType === "grooved_fitting") {
-    const option = groovedFittingOptions.find(
-      (item) =>
-        item.fittingTypeId === row.fittingTypeId &&
-        item.nominalSizeId === row.nominalSizeId &&
-        item.modelId === row.modelId,
+    const record = findGroovedFittingRecord(
+      row.fittingTypeId,
+      row.specification,
+      row.pressureRatingMpa,
     );
-    const unitWeightKg = option?.weightKgPerPiece;
-    if (!unitWeightKg) {
+    const unitWeightKg = record?.finishedWeightKg ?? row.finishedWeightKg ?? null;
+    if (!unitWeightKg || unitWeightKg <= 0) {
       return {
         rowId: row.id,
         hasWeight: false,

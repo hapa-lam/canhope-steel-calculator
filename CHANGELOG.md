@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.9.0
+
+### Added
+
+- Added a Grooved Fittings module with 18 fitting types and 567 specification records.
+- Added pressure rating, threaded outlet, flange type and packaging data.
+- Added finished-weight calculations for grooved fittings.
+- Added material list, RFQ, localStorage and 40HQ integration.
+- Added missing-weight handling without inferring values from packaging data.
+
+### Changed
+
+- Added a dedicated grooved fitting selection flow to keep the product interface compact.
+- Split Type A and Type B grooved flanges into separate fitting types and simplified pressure selection.
+- Improved quantity input behavior by removing leading zeros.
+
 ## v0.8.0
 
 ### Added
