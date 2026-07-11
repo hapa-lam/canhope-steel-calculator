@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CANHOPE STEEL | 钢材重量计算与询盘工具",
+  title: "Steel Weight Calculator & RFQ Builder | CANHOPE STEEL",
   description:
     "钢材重量计算与询盘工具，支持镀锌管、镀锌板管、黑料钢管、方矩管、角钢、槽钢和沟槽管件。",
   icons: {
@@ -28,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

@@ -63,6 +63,10 @@ import type {
 
 const STORAGE_KEY = "canhope-steel-calculator-material-list";
 const LOCALE_STORAGE_KEY = "steel-calculator-locale";
+const pageTitles: Record<Locale, string> = {
+  en: "Steel Weight Calculator & RFQ Builder | CANHOPE STEEL",
+  zh: "CANHOPE STEEL | 钢材重量计算与询盘工具",
+};
 
 const categories = ["钢管类", "型钢类", "消防配件"] as const;
 
@@ -285,6 +289,22 @@ function createCustomRow(productType: CustomSizeProductType): MaterialRow {
 
 function productName(type: ProductType, m: Messages) {
   return m.products[type];
+}
+
+function formatModuleRowCount(count: number, locale: Locale) {
+  if (locale === "zh") {
+    return `（${count}行）`;
+  }
+
+  return ` (${count} ${count === 1 ? "row" : "rows"})`;
+}
+
+function formatSummaryQuantity(totalLengths: number, totalItems: number, locale: Locale) {
+  if (locale === "zh") {
+    return `${formatQuantity(totalLengths, "支", locale)} / ${formatQuantity(totalItems, "件", locale)}`;
+  }
+
+  return `${formatNumber(totalLengths, 0, locale)} lengths / ${formatNumber(totalItems, 0, locale)} items`;
 }
 
 function categoryName(category: (typeof categories)[number], m: Messages) {
@@ -694,6 +714,11 @@ export default function Home() {
     }
   }, []);
 
+  useEffect(() => {
+    document.title = pageTitles[locale];
+    document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
+  }, [locale]);
+
   function switchLocale(nextLocale: Locale) {
     setLocale(nextLocale);
     window.localStorage.setItem(LOCALE_STORAGE_KEY, nextLocale);
@@ -968,7 +993,7 @@ export default function Home() {
               {m.nav.instructions}
             </button>
             <button className="primary-button" type="button" onClick={() => setIsRfqOpen(true)}>
-              {m.nav.sendRfq} {summary.validRowCount}
+              {m.nav.sendRfq} ({summary.validRowCount})
             </button>
           </nav>
 
@@ -982,7 +1007,7 @@ export default function Home() {
               {locale === "zh" ? "EN" : "中文"}
             </button>
             <button className="primary-button mobile-rfq-button" type="button" onClick={() => setIsRfqOpen(true)}>
-              {m.nav.mobileRfq} {summary.validRowCount}
+              {m.nav.mobileRfq} ({summary.validRowCount})
             </button>
           </div>
         </div>
@@ -1134,7 +1159,8 @@ function ProductModule({
       <div className="module-header">
         <div>
           <h2 className="text-lg font-bold text-slate-950">
-            {productName(module.productType, m)}（{module.rows.length} {m.materialList.rows}）
+            {productName(module.productType, m)}
+            {formatModuleRowCount(module.rows.length, locale)}
           </h2>
           <p className="text-sm text-slate-500">
             {m.materialList.subtotal}：{subtotalLabel}
@@ -2465,7 +2491,7 @@ function SummaryBar({
         <SummaryItem label={m.summary.validSpecRows} value={summary.validRowCount} />
         <SummaryItem
           label={m.summary.totalQuantity}
-          value={`${formatQuantity(summary.totalQuantityPieces, "支", locale)} / ${formatQuantity(summary.totalQuantityItems, "件", locale)}`}
+          value={formatSummaryQuantity(summary.totalQuantityPieces, summary.totalQuantityItems, locale)}
         />
         <SummaryItem label={m.summary.theoreticalWeight} value={formatTonFromKg(summary.totalWeightKg, locale, m.notices.weightPending)} strong />
         <SummaryItem

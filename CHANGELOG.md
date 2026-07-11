@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.7.2
+
+### Changed
+
+- Updated localized browser titles and HTML language attributes.
+- Corrected English row pluralization and interface wording.
+- Improved RFQ, product removal, custom-size and navigation labels.
+- Improved company advantage labels.
+- Clarified the English total quantity units.
+
 ## v0.7.1
 
 ### Changed

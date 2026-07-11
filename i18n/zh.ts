@@ -4,7 +4,7 @@ export const zh = {
     languageZh: "中文",
     languageEn: "English",
     instructions: "使用说明",
-    sendRfq: "发送询盘",
+    sendRfq: "询盘",
     mobileRfq: "询盘",
   },
   company: {
@@ -30,7 +30,7 @@ export const zh = {
     grooved_fitting: "沟槽管件",
   },
   materialList: {
-    addHint: "点击产品，添加到材料清单",
+    addHint: "选择产品并添加到材料清单",
     title: "材料清单",
     subtitle: "",
     emptyTitle: "从添加产品开始",
@@ -78,12 +78,12 @@ export const zh = {
     addSpec: "增加规格",
     copy: "复制",
     delete: "删除",
-    deleteModule: "删除模块",
+    deleteModule: "删除产品",
     clearAll: "清空清单",
     close: "关闭",
   },
   customSize: {
-    noSuitableSpec: "没有合适规格？",
+    noSuitableSpec: "找不到合适的规格？",
     useCustomSize: "使用自定义尺寸",
     customSpec: "自定义规格",
     locked: "锁定",

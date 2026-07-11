@@ -5,9 +5,9 @@ export const en: typeof zh = {
     subtitle: "Steel Weight Calculator & RFQ Builder",
     languageZh: "中文",
     languageEn: "English",
-    instructions: "Instructions",
+    instructions: "How to Use",
     sendRfq: "Send RFQ",
-    mobileRfq: "RFQ",
+    mobileRfq: "Send RFQ",
   },
   company: {
     name: "CANHOPE STEEL",
@@ -15,7 +15,7 @@ export const en: typeof zh = {
     description:
       "Since 1993, supplying steel pipes, structural steel, steel sheets, fire protection materials, and custom processing solutions for global projects.",
     officialWebsite: "Official Website",
-    tags: ["Since 1993", "Factory & Stock", "Project Supply", "Global Export"],
+    tags: ["Since 1993", "Factory & Inventory", "Project Supply Solutions", "Global Export Experience"],
   },
   productCategories: {
     steelPipe: "Steel Pipes",
@@ -33,7 +33,7 @@ export const en: typeof zh = {
     grooved_fitting: "Grooved Fittings",
   },
   materialList: {
-    addHint: "Click a product to add it to the material list",
+    addHint: "Select a product to add it to the material list",
     title: "Material List",
     subtitle: "",
     emptyTitle: "Start by adding a product",
@@ -81,13 +81,13 @@ export const en: typeof zh = {
     addSpec: "Add Specification",
     copy: "Copy",
     delete: "Delete",
-    deleteModule: "Delete Category",
+    deleteModule: "Remove Product",
     clearAll: "Clear List",
     close: "Close",
   },
   customSize: {
-    noSuitableSpec: "No suitable size?",
-    useCustomSize: "Use Custom Size",
+    noSuitableSpec: "Can't find the right size?",
+    useCustomSize: "Use a custom size.",
     customSpec: "Custom Size",
     locked: "Locked",
     fixedLengthTip: "Standard stock length is fixed at 6 meters. For other lengths, please use Custom Size.",
