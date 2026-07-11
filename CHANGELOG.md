@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.7.1
+
+### Changed
+
+- Changed the first-visit default language to English.
+- Added a mobile language switcher.
+- Improved the mobile summary bar with a collapsible layout.
+- Added WhatsApp, email, WeChat and copy options to the RFQ contact window.
+- Removed demo-only labels and updated production-facing copy.
+
+### Added
+
+- Added WeChat QR code and contact details.
+- Added direct WhatsApp inquiry links with prefilled RFQ content.
+- Added direct email inquiry links with prefilled RFQ content.
+
 ## v0.7.0
 
 ### Added

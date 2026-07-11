@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { contactConfig } from "@/config/contact";
 import { productDefinitions } from "@/data/demo/product-definitions";
 import { groovedFittingOptions } from "@/data/demo/steel-specs";
 import {
@@ -647,7 +648,7 @@ function normalizeStoredMaterialList(value: MaterialList): MaterialList {
 }
 
 export default function Home() {
-  const [locale, setLocale] = useState<Locale>("zh");
+  const [locale, setLocale] = useState<Locale>("en");
   const [materialList, setMaterialList] = useState<MaterialList>({ modules: [] });
   const [hasRestoredMaterialList, setHasRestoredMaterialList] = useState(false);
   const m = messages[locale];
@@ -935,7 +936,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-100 pb-32 text-slate-900">
+    <main className="app-shell min-h-screen bg-slate-100 pb-32 text-slate-900">
       <header className="sticky top-0 z-40 border-b border-slate-800 bg-[#0e2a47] text-white shadow-sm">
         <div className="mx-auto flex h-16 max-w-[1500px] items-center justify-between px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
@@ -971,9 +972,19 @@ export default function Home() {
             </button>
           </nav>
 
-          <button className="primary-button md:hidden" type="button" onClick={() => setIsRfqOpen(true)}>
-            {m.nav.mobileRfq} {summary.validRowCount}
-          </button>
+          <div className="flex shrink-0 items-center gap-2 md:hidden">
+            <button
+              className="mobile-language-button"
+              type="button"
+              onClick={() => switchLocale(locale === "zh" ? "en" : "zh")}
+              aria-label={locale === "zh" ? "Switch to English" : "切换到中文"}
+            >
+              {locale === "zh" ? "EN" : "中文"}
+            </button>
+            <button className="primary-button mobile-rfq-button" type="button" onClick={() => setIsRfqOpen(true)}>
+              {m.nav.mobileRfq} {summary.validRowCount}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -1027,10 +1038,8 @@ export default function Home() {
           <div className="mb-5 flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-normal text-slate-950">{m.materialList.title}</h1>
-              <p className="text-sm text-slate-500">{m.materialList.subtitle}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="status-pill">{m.materialList.demoMode}</span>
               <button className="secondary-button" type="button" onClick={clearAll}>
                 {m.actions.clearAll}
               </button>
@@ -2422,8 +2431,35 @@ function SummaryBar({
   locale: Locale;
   m: Messages;
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const containerText =
+    summary.containerCount > 0
+      ? `${m.summary.estimated} ${summary.containerCount} × 40HQ，${
+          summary.remainingCapacityTon === 0
+            ? m.summary.capacityReached
+            : `${m.summary.remainingCapacity} ${formatNumber(summary.remainingCapacityTon ?? 0, 2, locale)} ${
+                locale === "zh" ? "吨" : "t"
+              }`
+        }`
+      : `${m.summary.estimated} 0 × 40HQ`;
+
   return (
-    <footer className="summary-bar">
+    <footer className={`summary-bar ${isExpanded ? "is-expanded" : ""}`}>
+      <div className="summary-compact">
+        <div className="min-w-0">
+          <p className="text-xs text-blue-100">{m.summary.theoreticalWeight}</p>
+          <p className="truncate text-lg font-bold text-white">
+            {formatTonFromKg(summary.totalWeightKg, locale, m.notices.weightPending)}
+          </p>
+        </div>
+        <button className="primary-button summary-compact-rfq" type="button" onClick={onOpenRfq}>
+          {m.summary.generateRfq}
+        </button>
+        <button className="summary-toggle-button" type="button" onClick={() => setIsExpanded((current) => !current)}>
+          {isExpanded ? m.summary.collapse : m.summary.expand}
+        </button>
+      </div>
+
       <div className="summary-grid">
         <SummaryItem label={m.summary.productCount} value={summary.productModuleCount} />
         <SummaryItem label={m.summary.validSpecRows} value={summary.validRowCount} />
@@ -2439,17 +2475,7 @@ function SummaryBar({
         />
         <div className="min-w-0">
           <p className="text-xs text-blue-100">{m.summary.containerEstimate}</p>
-          <p className="truncate text-base font-bold text-white">
-            {summary.containerCount > 0
-              ? `${m.summary.estimated} ${summary.containerCount} × 40HQ，${
-                  summary.remainingCapacityTon === 0
-                    ? m.summary.capacityReached
-                    : `${m.summary.remainingCapacity} ${formatNumber(summary.remainingCapacityTon ?? 0, 2, locale)} ${
-                        locale === "zh" ? "吨" : "t"
-                      }`
-                }`
-              : `${m.summary.estimated} 0 × 40HQ`}
-          </p>
+          <p className="truncate text-base font-bold text-white">{containerText}</p>
         </div>
         <button className="primary-button h-12" type="button" onClick={onOpenRfq}>
           {m.summary.generateRfq}
@@ -2508,9 +2534,26 @@ function RfqModal({
   locale: Locale;
   m: Messages;
 }) {
+  const [showWechat, setShowWechat] = useState(false);
+  const [showLargeQr, setShowLargeQr] = useState(false);
+
   function updateCustomer(key: string, value: string) {
     setCustomer({ ...customer, [key]: value });
   }
+
+  function openWhatsApp() {
+    const url = `https://wa.me/${contactConfig.whatsapp.linkNumber}?text=${encodeURIComponent(rfqText)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  function openEmail() {
+    const subject = encodeURIComponent(m.inquiry.emailSubject);
+    const body = encodeURIComponent(rfqText);
+    window.open(`mailto:${contactConfig.email}?subject=${subject}&body=${body}`, "_blank", "noopener,noreferrer");
+  }
+
+  const wechatIntro = m.inquiry.wechatIntro.replace("{name}", contactConfig.wechat.contactName);
+  const wechatSearchPhone = m.inquiry.wechatSearchPhone.replace("{phone}", contactConfig.wechat.searchPhoneNumber);
 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label={m.inquiry.title}>
@@ -2579,12 +2622,51 @@ function RfqModal({
               />
             </label>
             <textarea className="rfq-textarea" readOnly value={rfqText} />
-            <button className="primary-button w-full justify-center py-3" type="button" onClick={onCopy}>
-              {copied ? m.inquiry.copied : m.inquiry.copyContent}
-            </button>
+            <div className="rfq-contact-actions" aria-label={m.inquiry.contactActions}>
+              <button className="primary-button justify-center py-3" type="button" onClick={openWhatsApp}>
+                {m.inquiry.whatsappContact}
+              </button>
+              <button className="secondary-button justify-center py-3" type="button" onClick={openEmail}>
+                {m.inquiry.emailContact}
+              </button>
+              <button
+                className="secondary-button justify-center py-3"
+                type="button"
+                onClick={() => setShowWechat((current) => !current)}
+              >
+                {m.inquiry.wechatContact}
+              </button>
+              <button className="secondary-button justify-center py-3" type="button" onClick={onCopy}>
+                {copied ? m.inquiry.copied : m.inquiry.copyRfq}
+              </button>
+            </div>
+            {showWechat ? (
+              <div className="wechat-contact-panel">
+                <div>
+                  <p className="text-base font-bold text-slate-950">{wechatIntro}</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-700">{wechatSearchPhone}</p>
+                  <p className="mt-1 text-sm text-slate-500">{m.inquiry.wechatScan}</p>
+                </div>
+                <button
+                  className="wechat-qr-button"
+                  type="button"
+                  onClick={() => setShowLargeQr(true)}
+                  aria-label={m.inquiry.enlargeQr}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={contactConfig.wechat.qrCodePath} alt={m.inquiry.wechatContact} />
+                </button>
+              </div>
+            ) : null}
           </section>
         </div>
       </div>
+      {showLargeQr ? (
+        <button className="qr-lightbox" type="button" onClick={() => setShowLargeQr(false)} aria-label={m.actions.close}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={contactConfig.wechat.qrCodePath} alt={m.inquiry.wechatContact} />
+        </button>
+      ) : null}
     </div>
   );
 }

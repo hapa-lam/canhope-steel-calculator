@@ -1,6 +1,6 @@
 {
   "name": "canhope-steel-calculator",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -12,7 +12,7 @@
     "build:hostinger": "NITRO_PRESET=node vite build",
     "start:hostinger": "node .output/server/index.mjs",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .output",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {

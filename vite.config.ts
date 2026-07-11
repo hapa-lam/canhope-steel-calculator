@@ -56,6 +56,9 @@ export default defineConfig(async () => {
           config: localBindingConfig,
         }),
       );
+  const plugins = isHostingerBuild
+    ? [vinext(), nitro(), sites()]
+    : [vinext(), sites(), cloudflarePlugin];
 
   return {
     server: isCodexSeatbeltSandbox
@@ -67,11 +70,6 @@ export default defineConfig(async () => {
     resolve: isHostingerBuild
       ? { alias: { tailwindcss: tailwindCssEntry } }
       : undefined,
-    plugins: [
-      vinext(),
-      nitro(),
-      sites(),
-      cloudflarePlugin,
-    ].filter((plugin) => plugin !== null),
+    plugins,
   };
 });
