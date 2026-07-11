@@ -10,6 +10,10 @@ import {
 } from "@/data/angle-steel/angle-steel-data";
 import { channelSteelData } from "@/data/channel-steel/channel-steel-data";
 import {
+  flatSteelBarData,
+  getFlatSteelBarThicknessId,
+} from "@/data/flat-steel-bar/flat-steel-bar-data";
+import {
   galvanizedPipeData,
   getGalvanizedPipeThicknessId,
 } from "@/data/galvanized-pipe/galvanized-pipe-data";
@@ -21,6 +25,8 @@ import {
   galvanizedSheetPipeData,
   getGalvanizedSheetPipeThicknessId,
 } from "@/data/galvanized-sheet-pipe/galvanized-sheet-pipe-data";
+import { iBeamData } from "@/data/i-beam/i-beam-data";
+import { roundSteelBarData } from "@/data/round-steel-bar/round-steel-bar-data";
 import {
   galvanizedSquareRectangularTubeData,
   getGalvanizedSquareRectangularTubeThicknessId,
@@ -57,6 +63,8 @@ import type {
   MaterialModule,
   MaterialRow,
   ProductType,
+  FlatSteelBarRow,
+  RoundSteelBarRow,
   SquareTubeProductType,
   SteelPipeProductType,
 } from "@/types/materials";
@@ -80,7 +88,12 @@ type CustomerInfo = {
   notes: string;
 };
 
-type CustomSizeProductType = SteelPipeProductType | SquareTubeProductType | "angle_steel";
+type CustomSizeProductType =
+  | SteelPipeProductType
+  | SquareTubeProductType
+  | "angle_steel"
+  | "round_steel_bar"
+  | "flat_steel_bar";
 
 const steelPipeProductTypes: SteelPipeProductType[] = [
   "galvanized_pipe",
@@ -102,7 +115,13 @@ function isSquareTubeProduct(type: string): type is SquareTubeProductType {
 }
 
 function isCustomSizeProduct(type: ProductType): type is CustomSizeProductType {
-  return isSteelPipeProduct(type) || isSquareTubeProduct(type) || type === "angle_steel";
+  return (
+    isSteelPipeProduct(type) ||
+    isSquareTubeProduct(type) ||
+    type === "angle_steel" ||
+    type === "round_steel_bar" ||
+    type === "flat_steel_bar"
+  );
 }
 
 function getSquareTubeData(productType: SquareTubeProductType) {
@@ -147,10 +166,40 @@ function getDefaultChannelSteelSelection() {
   };
 }
 
+function getDefaultIBeamSelection() {
+  const firstSpec = iBeamData[0];
+  const firstWeight = firstSpec?.weightOptions[0];
+
+  return {
+    specId: firstSpec?.id ?? "",
+    referenceWeightId: firstWeight?.id ?? "",
+  };
+}
+
+function getDefaultRoundSteelBarSelection() {
+  const firstSpec = roundSteelBarData[0];
+
+  return {
+    specId: firstSpec?.id ?? "",
+  };
+}
+
+function getDefaultFlatSteelBarSelection() {
+  const firstSpec = flatSteelBarData[0];
+  const firstThickness = firstSpec?.thicknessOptions[0];
+
+  return {
+    specId: firstSpec?.id ?? "",
+    thicknessId: firstThickness ? getFlatSteelBarThicknessId(firstThickness.thicknessMm) : "",
+  };
+}
+
 type StandardOptionMode = "thickness" | "referenceWeight";
 
 function getStandardOptionMode(productType: ProductType): StandardOptionMode {
-  return productType === "channel_steel" ? "referenceWeight" : "thickness";
+  return productType === "channel_steel" || productType === "i_beam"
+    ? "referenceWeight"
+    : "thickness";
 }
 
 function getStandardOptionLabel(productType: ProductType, m: Messages) {
@@ -227,6 +276,49 @@ function createEmptyRow(productType: ProductType): MaterialRow {
     };
   }
 
+  if (productType === "i_beam") {
+    const defaultSelection = getDefaultIBeamSelection();
+
+    return {
+      id,
+      productType,
+      specId: defaultSelection.specId,
+      referenceWeightId: defaultSelection.referenceWeightId,
+      lengthM: 6,
+      quantity: 0,
+      quantityUnit: "支",
+    };
+  }
+
+  if (productType === "round_steel_bar") {
+    const defaultSelection = getDefaultRoundSteelBarSelection();
+
+    return {
+      id,
+      productType,
+      dimensionMode: "standard",
+      specId: defaultSelection.specId,
+      lengthM: 6,
+      quantity: 0,
+      quantityUnit: "支",
+    };
+  }
+
+  if (productType === "flat_steel_bar") {
+    const defaultSelection = getDefaultFlatSteelBarSelection();
+
+    return {
+      id,
+      productType,
+      dimensionMode: "standard",
+      specId: defaultSelection.specId,
+      thicknessId: defaultSelection.thicknessId,
+      lengthM: 6,
+      quantity: 0,
+      quantityUnit: "支",
+    };
+  }
+
   return {
     id,
     productType,
@@ -266,6 +358,34 @@ function createCustomRow(productType: CustomSizeProductType): MaterialRow {
       customLegAMm: 50,
       customLegBMm: 50,
       customThicknessMm: 4,
+      lengthM: 6,
+      quantity: 0,
+      quantityUnit: "支",
+    };
+  }
+
+  if (productType === "round_steel_bar") {
+    return {
+      id,
+      productType,
+      dimensionMode: "custom",
+      specId: "",
+      customDiameterMm: 10,
+      lengthM: 6,
+      quantity: 0,
+      quantityUnit: "支",
+    };
+  }
+
+  if (productType === "flat_steel_bar") {
+    return {
+      id,
+      productType,
+      dimensionMode: "custom",
+      specId: "",
+      thicknessId: "",
+      customWidthMm: 40,
+      customThicknessMm: 3,
       lengthM: 6,
       quantity: 0,
       quantityUnit: "支",
@@ -436,6 +556,79 @@ function getChannelSteelSelectedBundleLabel(
   return option ? formatChannelSteelPiecesPerBundle(option.piecesPerBundle, locale) : "";
 }
 
+function formatNullablePiecesPerBundle(piecesPerBundle: number | null | undefined, locale: Locale, m: Messages) {
+  if (!piecesPerBundle) {
+    return m.notices.notProvided;
+  }
+
+  return formatChannelSteelPiecesPerBundle(piecesPerBundle, locale);
+}
+
+function formatReferenceWeightPerPiece(weightKg: number, locale: Locale) {
+  return locale === "zh"
+    ? `${formatNumber(weightKg, 2, locale)} kg / 6米`
+    : `${formatNumber(weightKg, 2, locale)} kg / 6 m`;
+}
+
+function getIBeamSelectedWeightOption(specId: string, referenceWeightId: string) {
+  const spec = iBeamData.find((item) => item.id === specId);
+  return spec?.weightOptions.find((item) => item.id === referenceWeightId);
+}
+
+function getIBeamSelectedReferenceWeightLabel(specId: string, referenceWeightId: string, locale: Locale) {
+  const option = getIBeamSelectedWeightOption(specId, referenceWeightId);
+  return option ? formatReferenceWeightPerPiece(option.referenceWeightKgPerPiece, locale) : "";
+}
+
+function getIBeamSelectedBundleLabel(specId: string, referenceWeightId: string, locale: Locale, m: Messages) {
+  const option = getIBeamSelectedWeightOption(specId, referenceWeightId);
+  return option ? formatNullablePiecesPerBundle(option.piecesPerBundle, locale, m) : "";
+}
+
+function formatRoundSteelBarSpec(specId: string) {
+  const spec = roundSteelBarData.find((item) => item.id === specId);
+  return spec?.sizeLabel ?? "";
+}
+
+function getRoundSteelBarSelectedReferenceWeightLabel(specId: string, locale: Locale) {
+  const spec = roundSteelBarData.find((item) => item.id === specId);
+  return spec ? formatReferenceWeightPerPiece(spec.referenceWeightKgPerPiece, locale) : "";
+}
+
+function getRoundSteelBarSelectedBundleLabel(specId: string, locale: Locale, m: Messages) {
+  const spec = roundSteelBarData.find((item) => item.id === specId);
+  return spec ? formatNullablePiecesPerBundle(spec.piecesPerBundle, locale, m) : "";
+}
+
+function formatFlatSteelBarSpec(widthMm: number) {
+  return `${widthMm} mm`;
+}
+
+function getFlatSteelBarSelectedSpecLabel(specId: string) {
+  const spec = flatSteelBarData.find((item) => item.id === specId);
+  return spec ? formatFlatSteelBarSpec(spec.widthMm) : "";
+}
+
+function getFlatSteelBarSelectedThicknessOption(specId: string, thicknessId: string) {
+  const spec = flatSteelBarData.find((item) => item.id === specId);
+  return spec?.thicknessOptions.find((item) => getFlatSteelBarThicknessId(item.thicknessMm) === thicknessId);
+}
+
+function getFlatSteelBarSelectedThicknessLabel(specId: string, thicknessId: string, locale: Locale) {
+  const option = getFlatSteelBarSelectedThicknessOption(specId, thicknessId);
+  return option ? formatThicknessValue(option.thicknessMm, locale) : "";
+}
+
+function getFlatSteelBarSelectedReferenceWeightLabel(specId: string, thicknessId: string, locale: Locale) {
+  const option = getFlatSteelBarSelectedThicknessOption(specId, thicknessId);
+  return option ? formatReferenceWeightPerPiece(option.referenceWeightKgPerPiece, locale) : "";
+}
+
+function getFlatSteelBarSelectedBundleLabel(specId: string, thicknessId: string, locale: Locale, m: Messages) {
+  const option = getFlatSteelBarSelectedThicknessOption(specId, thicknessId);
+  return option ? formatNullablePiecesPerBundle(option.piecesPerBundle, locale, m) : "";
+}
+
 function getStandardSteelPipeLengthM(row: MaterialRow) {
   if (row.productType === "black_steel_pipe" && row.dimensionMode !== "custom") {
     const spec = blackSteelPipeData.find((item) => item.id === row.specId);
@@ -456,7 +649,10 @@ function isFixedLengthStandardSteelPipeRow(row: MaterialRow) {
       row.productType === "black_steel_pipe" ||
       isSquareTubeProduct(row.productType) ||
       row.productType === "angle_steel" ||
-      row.productType === "channel_steel") &&
+      row.productType === "channel_steel" ||
+      row.productType === "i_beam" ||
+      row.productType === "round_steel_bar" ||
+      row.productType === "flat_steel_bar") &&
     ("dimensionMode" in row ? row.dimensionMode !== "custom" : true)
   );
 }
@@ -532,6 +728,46 @@ function getRowDescription(row: MaterialRow, locale: Locale, m: Messages) {
       .join(" / ");
   }
 
+  if (row.productType === "i_beam") {
+    return [
+      `${m.fields.spec} ${row.specId}`,
+      `${m.fields.theoreticalWeight} ${getIBeamSelectedReferenceWeightLabel(row.specId, row.referenceWeightId, locale)}`,
+    ]
+      .filter(Boolean)
+      .join(" / ");
+  }
+
+  if (row.productType === "round_steel_bar") {
+    if (row.dimensionMode === "custom") {
+      return `${m.customSize.customSpec} ${productName(row.productType, m)} / ${m.fields.diameter} ${
+        row.customDiameterMm || 0
+      } mm`;
+    }
+
+    return [
+      `${m.fields.diameter} ${formatRoundSteelBarSpec(row.specId)}`,
+      `${m.fields.theoreticalWeight} ${getRoundSteelBarSelectedReferenceWeightLabel(row.specId, locale)}`,
+    ]
+      .filter(Boolean)
+      .join(" / ");
+  }
+
+  if (row.productType === "flat_steel_bar") {
+    if (row.dimensionMode === "custom") {
+      return `${m.customSize.customSpec} ${productName(row.productType, m)} / ${m.fields.width} ${
+        row.customWidthMm || 0
+      } mm / ${m.fields.thickness} ${formatThicknessValue(row.customThicknessMm || 0, locale)}`;
+    }
+
+    return [
+      `${m.fields.width} ${getFlatSteelBarSelectedSpecLabel(row.specId)}`,
+      `${m.fields.thickness} ${getFlatSteelBarSelectedThicknessLabel(row.specId, row.thicknessId, locale)}`,
+      `${m.fields.theoreticalWeight} ${getFlatSteelBarSelectedReferenceWeightLabel(row.specId, row.thicknessId, locale)}`,
+    ]
+      .filter(Boolean)
+      .join(" / ");
+  }
+
   const option = groovedFittingOptions.find(
     (item) =>
       item.fittingTypeId === row.fittingTypeId &&
@@ -584,6 +820,82 @@ function normalizeStoredMaterialList(value: MaterialList): MaterialList {
             specId: matchingSpec?.id ?? "",
             referenceWeightId: matchingWeight?.id ?? "",
             lengthM: 6,
+            quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
+          };
+        }
+
+        if (normalizedRow.productType === "i_beam") {
+          const firstSpec = iBeamData[0];
+          const matchingSpec =
+            iBeamData.find((spec) => spec.id === normalizedRow.specId) ?? firstSpec;
+          const referenceWeightId =
+            "referenceWeightId" in normalizedRow ? normalizedRow.referenceWeightId : "";
+          const matchingWeight =
+            matchingSpec?.weightOptions.find((option) => option.id === referenceWeightId) ??
+            matchingSpec?.weightOptions[0];
+
+          return {
+            ...normalizedRow,
+            specId: matchingSpec?.id ?? "",
+            referenceWeightId: matchingWeight?.id ?? "",
+            lengthM: 6,
+            quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
+          };
+        }
+
+        if (normalizedRow.productType === "round_steel_bar") {
+          const lengthM = Number.isFinite(normalizedRow.lengthM) ? normalizedRow.lengthM : 6;
+          const dimensionMode = normalizedRow.dimensionMode ?? "standard";
+
+          if (dimensionMode === "standard") {
+            const firstSpec = roundSteelBarData[0];
+            const matchingSpec =
+              roundSteelBarData.find((spec) => spec.id === normalizedRow.specId) ?? firstSpec;
+
+            return {
+              ...normalizedRow,
+              dimensionMode,
+              specId: matchingSpec?.id ?? "",
+              lengthM: 6,
+              quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
+            };
+          }
+
+          return {
+            ...normalizedRow,
+            dimensionMode,
+            lengthM,
+            quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
+          };
+        }
+
+        if (normalizedRow.productType === "flat_steel_bar") {
+          const lengthM = Number.isFinite(normalizedRow.lengthM) ? normalizedRow.lengthM : 6;
+          const dimensionMode = normalizedRow.dimensionMode ?? "standard";
+
+          if (dimensionMode === "standard") {
+            const firstSpec = flatSteelBarData[0];
+            const matchingSpec =
+              flatSteelBarData.find((spec) => spec.id === normalizedRow.specId) ?? firstSpec;
+            const matchingThickness =
+              matchingSpec?.thicknessOptions.find(
+                (thickness) => getFlatSteelBarThicknessId(thickness.thicknessMm) === normalizedRow.thicknessId,
+              ) ?? matchingSpec?.thicknessOptions[0];
+
+            return {
+              ...normalizedRow,
+              dimensionMode,
+              specId: matchingSpec?.id ?? "",
+              thicknessId: matchingThickness ? getFlatSteelBarThicknessId(matchingThickness.thicknessMm) : "",
+              lengthM: 6,
+              quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
+            };
+          }
+
+          return {
+            ...normalizedRow,
+            dimensionMode,
+            lengthM,
             quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
           };
         }
@@ -754,7 +1066,10 @@ export default function Home() {
           if (
             (row.productType === "pre_galvanized_square_rectangular_tube" ||
               row.productType === "angle_steel" ||
-              row.productType === "channel_steel") &&
+              row.productType === "channel_steel" ||
+              row.productType === "i_beam" ||
+              row.productType === "round_steel_bar" ||
+              row.productType === "flat_steel_bar") &&
             calc.hasWeight
           ) {
             lines.push(`${m.fields.pieceWeight}: ${formatKg(calc.pieceWeightKg, locale, m.notices.weightPending)}`);
@@ -807,6 +1122,11 @@ export default function Home() {
             ? `，${m.fields.pieceWeight} ${formatKg(calc.pieceWeightKg, locale, m.notices.weightPending)}`
             : row.productType === "channel_steel" && calc.hasWeight
             ? `，${m.fields.pieceWeight} ${formatKg(calc.pieceWeightKg, locale, m.notices.weightPending)}`
+            : (row.productType === "i_beam" ||
+                  row.productType === "round_steel_bar" ||
+                  row.productType === "flat_steel_bar") &&
+                calc.hasWeight
+              ? `，${m.fields.pieceWeight} ${formatKg(calc.pieceWeightKg, locale, m.notices.weightPending)}`
             : "";
         lines.push(
           `${index + 1}. ${description}${length}，${m.fields.quantity} ${formatQuantity(row.quantity, row.quantityUnit, locale)}${pieceWeight}，${
@@ -1221,7 +1541,7 @@ function ProductModule({
         </>
       )}
 
-      {isSteelPipeProduct(module.productType) || isSquareTubeProduct(module.productType) || module.productType === "angle_steel" ? (
+      {isCustomSizeProduct(module.productType) ? (
         <button className="custom-size-link" type="button" onClick={() => onAddCustomRow(module.productType)}>
           {m.customSize.noSuitableSpec}
           {locale === "zh" ? "" : " "}
@@ -1251,6 +1571,43 @@ function ProductTableHead({ productType, m }: { productType: ProductType; m: Mes
               m.fields.totalWeight,
               m.fields.action,
             ]
+          : productType === "i_beam"
+            ? [
+                m.fields.spec,
+                m.fields.theoreticalWeight,
+                m.fields.length,
+                m.fields.quantity,
+                m.fields.piecesPerBundle,
+                m.fields.unitWeight,
+                m.fields.pieceWeightFull,
+                m.fields.totalWeight,
+                m.fields.action,
+              ]
+            : productType === "round_steel_bar"
+              ? [
+                  m.fields.diameter,
+                  m.fields.theoreticalWeight,
+                  m.fields.length,
+                  m.fields.quantity,
+                  m.fields.piecesPerBundle,
+                  m.fields.unitWeight,
+                  m.fields.pieceWeightFull,
+                  m.fields.totalWeight,
+                  m.fields.action,
+                ]
+              : productType === "flat_steel_bar"
+                ? [
+                    m.fields.width,
+                    m.fields.thickness,
+                    m.fields.theoreticalWeight,
+                    m.fields.length,
+                    m.fields.quantity,
+                    m.fields.piecesPerBundle,
+                    m.fields.unitWeight,
+                    m.fields.pieceWeightFull,
+                    m.fields.totalWeight,
+                    m.fields.action,
+                  ]
           : [m.fields.fittingType, m.fields.size, m.fields.modelOrAngle, ...commonEnd];
 
   return (
@@ -1457,6 +1814,275 @@ function ProductRow({
         <td>{getChannelSteelSelectedBundleLabel(row.specId, row.referenceWeightId, locale) || <MissingWeight m={m} />}</td>
         {actionCells}
       </tr>
+    );
+  }
+
+  if (row.productType === "i_beam") {
+    return (
+      <tr>
+        <td>
+          <IBeamSpecSelect
+            value={row.specId}
+            onChange={(specId) => {
+              const nextSpec = iBeamData.find((spec) => spec.id === specId);
+              const nextWeight = nextSpec?.weightOptions[0];
+              onUpdateRow(row.id, {
+                specId,
+                referenceWeightId: nextWeight?.id ?? "",
+                lengthM: 6,
+              });
+            }}
+            m={m}
+          />
+        </td>
+        <td>
+          <IBeamReferenceWeightSelect
+            specId={row.specId}
+            value={row.referenceWeightId}
+            onChange={(referenceWeightId) => onUpdateRow(row.id, { referenceWeightId })}
+            locale={locale}
+            m={m}
+          />
+        </td>
+        <LengthInput row={row} onUpdateRow={onUpdateRow} locale={locale} m={m} />
+        <QuantityInput row={row} onUpdateRow={onUpdateRow} locale={locale} />
+        <td>{getIBeamSelectedBundleLabel(row.specId, row.referenceWeightId, locale, m)}</td>
+        {actionCells}
+      </tr>
+    );
+  }
+
+  if (row.productType === "round_steel_bar") {
+    return (
+      <tr>
+        {row.dimensionMode === "custom" ? (
+          <>
+            <CustomRoundSteelBarCells row={row} onUpdateRow={onUpdateRow} m={m} />
+            <td>{m.customSize.customSpec}</td>
+          </>
+        ) : (
+          <>
+            <td>
+              <RoundSteelBarSpecSelect
+                value={row.specId}
+                onChange={(specId) => onUpdateRow(row.id, { specId, lengthM: 6 })}
+                m={m}
+              />
+            </td>
+            <td>
+              <input
+                className="field"
+                readOnly
+                value={getRoundSteelBarSelectedReferenceWeightLabel(row.specId, locale)}
+              />
+            </td>
+          </>
+        )}
+        <LengthInput row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        <QuantityInput row={row} onUpdateRow={onUpdateRow} locale={locale} />
+        <td>{row.dimensionMode === "custom" ? m.notices.notProvided : getRoundSteelBarSelectedBundleLabel(row.specId, locale, m)}</td>
+        {actionCells}
+      </tr>
+    );
+  }
+
+  if (row.productType === "flat_steel_bar") {
+    return (
+      <tr>
+        {row.dimensionMode === "custom" ? (
+          <>
+            <CustomFlatSteelBarCells row={row} onUpdateRow={onUpdateRow} m={m} />
+            <td>{m.customSize.customSpec}</td>
+          </>
+        ) : (
+          <>
+            <td>
+              <FlatSteelBarSpecSelect
+                value={row.specId}
+                onChange={(specId) => {
+                  const nextSpec = flatSteelBarData.find((spec) => spec.id === specId);
+                  const nextThickness = nextSpec?.thicknessOptions[0];
+                  onUpdateRow(row.id, {
+                    specId,
+                    thicknessId: nextThickness ? getFlatSteelBarThicknessId(nextThickness.thicknessMm) : "",
+                    lengthM: 6,
+                  });
+                }}
+                m={m}
+              />
+            </td>
+            <td>
+              <FlatSteelBarThicknessSelect
+                specId={row.specId}
+                value={row.thicknessId}
+                onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
+                locale={locale}
+                m={m}
+              />
+            </td>
+            <td>
+              <input
+                className="field"
+                readOnly
+                value={getFlatSteelBarSelectedReferenceWeightLabel(row.specId, row.thicknessId, locale)}
+              />
+            </td>
+          </>
+        )}
+        <LengthInput row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        <QuantityInput row={row} onUpdateRow={onUpdateRow} locale={locale} />
+        <td>
+          {row.dimensionMode === "custom"
+            ? m.notices.notProvided
+            : getFlatSteelBarSelectedBundleLabel(row.specId, row.thicknessId, locale, m)}
+        </td>
+        {actionCells}
+      </tr>
+    );
+  }
+
+  if (row.productType === "i_beam") {
+    return (
+      <>
+        <label className="mobile-field-label">
+          {m.fields.spec}
+          <IBeamSpecSelect
+            value={row.specId}
+            onChange={(specId) => {
+              const nextSpec = iBeamData.find((spec) => spec.id === specId);
+              const nextWeight = nextSpec?.weightOptions[0];
+              onUpdateRow(row.id, {
+                specId,
+                referenceWeightId: nextWeight?.id ?? "",
+                lengthM: 6,
+              });
+            }}
+            m={m}
+          />
+        </label>
+        <label className="mobile-field-label">
+          {m.fields.theoreticalWeight}
+          <IBeamReferenceWeightSelect
+            specId={row.specId}
+            value={row.referenceWeightId}
+            onChange={(referenceWeightId) => onUpdateRow(row.id, { referenceWeightId })}
+            locale={locale}
+            m={m}
+          />
+        </label>
+        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} locale={locale} m={m} />
+        <label className="mobile-field-label">
+          {m.fields.piecesPerBundle}
+          <input
+            className="field"
+            readOnly
+            value={getIBeamSelectedBundleLabel(row.specId, row.referenceWeightId, locale, m)}
+          />
+        </label>
+      </>
+    );
+  }
+
+  if (row.productType === "round_steel_bar") {
+    if (row.dimensionMode === "custom") {
+      return (
+        <>
+          <label className="mobile-field-label">
+            {m.fields.diameter}
+            <NumberField
+              value={row.customDiameterMm ?? 0}
+              onChange={(value) => onUpdateRow(row.id, { customDiameterMm: value })}
+            />
+          </label>
+          <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        </>
+      );
+    }
+
+    return (
+      <>
+        <label className="mobile-field-label">
+          {m.fields.diameter}
+          <RoundSteelBarSpecSelect
+            value={row.specId}
+            onChange={(specId) => onUpdateRow(row.id, { specId, lengthM: 6 })}
+            m={m}
+          />
+        </label>
+        <label className="mobile-field-label">
+          {m.fields.theoreticalWeight}
+          <input className="field" readOnly value={getRoundSteelBarSelectedReferenceWeightLabel(row.specId, locale)} />
+        </label>
+        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        <label className="mobile-field-label">
+          {m.fields.piecesPerBundle}
+          <input className="field" readOnly value={getRoundSteelBarSelectedBundleLabel(row.specId, locale, m)} />
+        </label>
+      </>
+    );
+  }
+
+  if (row.productType === "flat_steel_bar") {
+    if (row.dimensionMode === "custom") {
+      return (
+        <>
+          <label className="mobile-field-label">
+            {m.fields.width}
+            <NumberField
+              value={row.customWidthMm ?? 0}
+              onChange={(value) => onUpdateRow(row.id, { customWidthMm: value })}
+            />
+          </label>
+          <label className="mobile-field-label">
+            {m.fields.thickness}
+            <NumberField
+              value={row.customThicknessMm ?? 0}
+              onChange={(value) => onUpdateRow(row.id, { customThicknessMm: value })}
+            />
+          </label>
+          <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        </>
+      );
+    }
+
+    return (
+      <>
+        <label className="mobile-field-label">
+          {m.fields.width}
+          <FlatSteelBarSpecSelect
+            value={row.specId}
+            onChange={(specId) => {
+              const nextSpec = flatSteelBarData.find((spec) => spec.id === specId);
+              const nextThickness = nextSpec?.thicknessOptions[0];
+              onUpdateRow(row.id, {
+                specId,
+                thicknessId: nextThickness ? getFlatSteelBarThicknessId(nextThickness.thicknessMm) : "",
+                lengthM: 6,
+              });
+            }}
+            m={m}
+          />
+        </label>
+        <label className="mobile-field-label">
+          {m.fields.thickness}
+          <FlatSteelBarThicknessSelect
+            specId={row.specId}
+            value={row.thicknessId}
+            onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
+            locale={locale}
+            m={m}
+          />
+        </label>
+        <label className="mobile-field-label">
+          {m.fields.theoreticalWeight}
+          <input className="field" readOnly value={getFlatSteelBarSelectedReferenceWeightLabel(row.specId, row.thicknessId, locale)} />
+        </label>
+        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        <label className="mobile-field-label">
+          {m.fields.piecesPerBundle}
+          <input className="field" readOnly value={getFlatSteelBarSelectedBundleLabel(row.specId, row.thicknessId, locale, m)} />
+        </label>
+      </>
     );
   }
 
@@ -1946,6 +2572,64 @@ function CustomAngleCells({
   );
 }
 
+function CustomRoundSteelBarCells({
+  row,
+  onUpdateRow,
+  m,
+}: {
+  row: RoundSteelBarRow;
+  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  m: Messages;
+}) {
+  return (
+    <td>
+      <div className="custom-dimension-field">
+        <span>{m.fields.diameter}</span>
+        <NumberField
+          value={row.customDiameterMm ?? 0}
+          onChange={(value) => onUpdateRow(row.id, { customDiameterMm: value })}
+        />
+        <span>mm</span>
+      </div>
+    </td>
+  );
+}
+
+function CustomFlatSteelBarCells({
+  row,
+  onUpdateRow,
+  m,
+}: {
+  row: FlatSteelBarRow;
+  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  m: Messages;
+}) {
+  return (
+    <>
+      <td>
+        <div className="custom-dimension-field">
+          <span>{m.fields.width}</span>
+          <NumberField
+            value={row.customWidthMm ?? 0}
+            onChange={(value) => onUpdateRow(row.id, { customWidthMm: value })}
+          />
+          <span>mm</span>
+        </div>
+      </td>
+      <td>
+        <div className="custom-dimension-field">
+          <span>{m.fields.thickness}</span>
+          <NumberField
+            value={row.customThicknessMm ?? 0}
+            onChange={(value) => onUpdateRow(row.id, { customThicknessMm: value })}
+          />
+          <span>mm</span>
+        </div>
+      </td>
+    </>
+  );
+}
+
 function NumberField({
   value,
   onChange,
@@ -2224,6 +2908,123 @@ function ChannelSteelReferenceWeightSelect({
       {weightOptions.map((option) => (
         <option key={option.id} value={option.id}>
           {formatChannelSteelReferenceWeight(option.referenceWeightKgPerPiece, locale)}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function IBeamSpecSelect({
+  value,
+  onChange,
+  m,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  m: Messages;
+}) {
+  return (
+    <select className="field" value={value} onChange={(event) => onChange(event.target.value)}>
+      <option value="">{m.fields.selectSpec}</option>
+      {iBeamData.map((spec) => (
+        <option key={spec.id} value={spec.id}>
+          {spec.size}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function IBeamReferenceWeightSelect({
+  specId,
+  value,
+  onChange,
+  locale,
+  m,
+}: {
+  specId: string;
+  value: string;
+  onChange: (value: string) => void;
+  locale: Locale;
+  m: Messages;
+}) {
+  const weightOptions = iBeamData.find((spec) => spec.id === specId)?.weightOptions ?? [];
+
+  return (
+    <select className="field" value={value} onChange={(event) => onChange(event.target.value)} disabled={!specId}>
+      <option value="">{weightOptions.length > 0 ? m.fields.selectTheoreticalWeight : m.fields.referenceWeightDataPending}</option>
+      {weightOptions.map((option) => (
+        <option key={option.id} value={option.id}>
+          {formatReferenceWeightPerPiece(option.referenceWeightKgPerPiece, locale)}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function RoundSteelBarSpecSelect({
+  value,
+  onChange,
+  m,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  m: Messages;
+}) {
+  return (
+    <select className="field" value={value} onChange={(event) => onChange(event.target.value)}>
+      <option value="">{m.fields.selectSpec}</option>
+      {roundSteelBarData.map((spec) => (
+        <option key={spec.id} value={spec.id}>
+          {spec.sizeLabel}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function FlatSteelBarSpecSelect({
+  value,
+  onChange,
+  m,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  m: Messages;
+}) {
+  return (
+    <select className="field" value={value} onChange={(event) => onChange(event.target.value)}>
+      <option value="">{m.fields.selectSpec}</option>
+      {flatSteelBarData.map((spec) => (
+        <option key={spec.id} value={spec.id}>
+          {formatFlatSteelBarSpec(spec.widthMm)}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function FlatSteelBarThicknessSelect({
+  specId,
+  value,
+  onChange,
+  locale,
+  m,
+}: {
+  specId: string;
+  value: string;
+  onChange: (value: string) => void;
+  locale: Locale;
+  m: Messages;
+}) {
+  const thicknesses = flatSteelBarData.find((spec) => spec.id === specId)?.thicknessOptions ?? [];
+
+  return (
+    <select className="field" value={value} onChange={(event) => onChange(event.target.value)} disabled={!specId}>
+      <option value="">{thicknesses.length > 0 ? m.fields.selectThickness : m.fields.thicknessDataPending}</option>
+      {thicknesses.map((thickness) => (
+        <option key={getFlatSteelBarThicknessId(thickness.thicknessMm)} value={getFlatSteelBarThicknessId(thickness.thicknessMm)}>
+          {formatThicknessValue(thickness.thicknessMm, locale)}
         </option>
       ))}
     </select>

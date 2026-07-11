@@ -6,6 +6,9 @@ export type ProductType =
   | "pre_galvanized_square_rectangular_tube"
   | "angle_steel"
   | "channel_steel"
+  | "i_beam"
+  | "round_steel_bar"
+  | "flat_steel_bar"
   | "grooved_fitting";
 
 export type SteelPipeProductType =
@@ -79,6 +82,40 @@ export type ChannelSteelRow = {
   quantityUnit: "支";
 };
 
+export type IBeamRow = {
+  id: string;
+  productType: "i_beam";
+  specId: string;
+  referenceWeightId: string;
+  lengthM: number;
+  quantity: number;
+  quantityUnit: "支";
+};
+
+export type RoundSteelBarRow = {
+  id: string;
+  productType: "round_steel_bar";
+  dimensionMode: DimensionMode;
+  specId: string;
+  customDiameterMm?: number;
+  lengthM: number;
+  quantity: number;
+  quantityUnit: "支";
+};
+
+export type FlatSteelBarRow = {
+  id: string;
+  productType: "flat_steel_bar";
+  dimensionMode: DimensionMode;
+  specId: string;
+  thicknessId: string;
+  customWidthMm?: number;
+  customThicknessMm?: number;
+  lengthM: number;
+  quantity: number;
+  quantityUnit: "支";
+};
+
 export type GroovedFittingRow = {
   id: string;
   productType: "grooved_fitting";
@@ -94,6 +131,9 @@ export type MaterialRow =
   | SquareTubeRow
   | AngleSteelRow
   | ChannelSteelRow
+  | IBeamRow
+  | RoundSteelBarRow
+  | FlatSteelBarRow
   | GroovedFittingRow;
 
 export type MaterialModule = {

@@ -27,6 +27,9 @@ export const zh = {
     pre_galvanized_square_rectangular_tube: "镀锌板方矩管",
     angle_steel: "角钢",
     channel_steel: "槽钢",
+    i_beam: "工字钢",
+    round_steel_bar: "圆钢",
+    flat_steel_bar: "扁铁",
     grooved_fitting: "沟槽管件",
   },
   materialList: {
@@ -51,6 +54,7 @@ export const zh = {
     thicknessShort: "厚度",
     theoreticalWeight: "理论重量",
     piecesPerBundle: "每扎支数",
+    diameter: "直径",
     length: "长度",
     quantity: "数量",
     unitWeight: "单位重量",
@@ -137,6 +141,7 @@ export const zh = {
   },
   notices: {
     weightPending: "重量待补充",
+    notProvided: "未提供",
   },
   units: {
     meter: "米",

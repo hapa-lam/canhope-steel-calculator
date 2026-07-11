@@ -1,8 +1,11 @@
 import { groovedFittingOptions } from "@/data/demo/steel-specs";
 import { findAngleSteelReference } from "@/data/angle-steel/angle-steel-data";
 import { findChannelSteelReference } from "@/data/channel-steel/channel-steel-data";
+import { findFlatSteelBarReference } from "@/data/flat-steel-bar/flat-steel-bar-data";
 import { findGalvanizedPipeReference } from "@/data/galvanized-pipe/galvanized-pipe-data";
 import { findGalvanizedSheetPipeReference } from "@/data/galvanized-sheet-pipe/galvanized-sheet-pipe-data";
+import { findIBeamReference } from "@/data/i-beam/i-beam-data";
+import { findRoundSteelBarReference } from "@/data/round-steel-bar/round-steel-bar-data";
 import { findBlackSteelPipeReference } from "@/data/black-steel-pipe/black-steel-pipe-data";
 import { findGalvanizedSquareRectangularTubeReference } from "@/data/galvanized-square-rectangular-tube/galvanized-square-rectangular-tube-data";
 import { findPreGalvanizedSquareRectangularTubeReference } from "@/data/pre-galvanized-square-rectangular-tube/pre-galvanized-square-rectangular-tube-data";
@@ -142,6 +145,57 @@ export function calculateRow(row: MaterialRow): RowCalculation {
     }
 
     const unitWeightKg = calculateAngleSteelKgPerMeter(legA, legB, thickness);
+    const pieceWeightKg = unitWeightKg * row.lengthM;
+
+    return {
+      rowId: row.id,
+      hasWeight: true,
+      unitWeightKg,
+      unitWeightLabel: "kg/m",
+      pieceWeightKg,
+      totalWeightKg: pieceWeightKg * row.quantity,
+    };
+  }
+
+  if (row.productType === "round_steel_bar" && row.dimensionMode === "custom") {
+    const diameter = row.customDiameterMm ?? 0;
+    const hasValidDimensions = diameter > 0 && row.lengthM > 0;
+
+    if (!hasValidDimensions) {
+      return {
+        rowId: row.id,
+        hasWeight: false,
+        unitWeightLabel: "kg/m",
+      };
+    }
+
+    const unitWeightKg = calculateRoundSteelBarKgPerMeter(diameter);
+    const pieceWeightKg = unitWeightKg * row.lengthM;
+
+    return {
+      rowId: row.id,
+      hasWeight: true,
+      unitWeightKg,
+      unitWeightLabel: "kg/m",
+      pieceWeightKg,
+      totalWeightKg: pieceWeightKg * row.quantity,
+    };
+  }
+
+  if (row.productType === "flat_steel_bar" && row.dimensionMode === "custom") {
+    const width = row.customWidthMm ?? 0;
+    const thickness = row.customThicknessMm ?? 0;
+    const hasValidDimensions = width > 0 && thickness > 0 && row.lengthM > 0;
+
+    if (!hasValidDimensions) {
+      return {
+        rowId: row.id,
+        hasWeight: false,
+        unitWeightLabel: "kg/m",
+      };
+    }
+
+    const unitWeightKg = calculateFlatSteelBarKgPerMeter(width, thickness);
     const pieceWeightKg = unitWeightKg * row.lengthM;
 
     return {
@@ -317,6 +371,80 @@ export function calculateRow(row: MaterialRow): RowCalculation {
     };
   }
 
+  if (row.productType === "i_beam") {
+    const reference = findIBeamReference(row.specId, row.referenceWeightId);
+
+    if (!reference) {
+      return {
+        rowId: row.id,
+        hasWeight: false,
+        unitWeightLabel: "kg/m",
+      };
+    }
+
+    const unitWeightKg =
+      reference.weightOption.referenceWeightKgPerPiece / reference.spec.referenceLengthM;
+    const pieceWeightKg = reference.weightOption.referenceWeightKgPerPiece;
+
+    return {
+      rowId: row.id,
+      hasWeight: true,
+      unitWeightKg,
+      unitWeightLabel: "kg/m",
+      pieceWeightKg,
+      totalWeightKg: pieceWeightKg * row.quantity,
+    };
+  }
+
+  if (row.productType === "round_steel_bar") {
+    const reference = findRoundSteelBarReference(row.specId);
+
+    if (!reference) {
+      return {
+        rowId: row.id,
+        hasWeight: false,
+        unitWeightLabel: "kg/m",
+      };
+    }
+
+    const unitWeightKg = reference.referenceWeightKgPerPiece / reference.referenceLengthM;
+    const pieceWeightKg = reference.referenceWeightKgPerPiece;
+
+    return {
+      rowId: row.id,
+      hasWeight: true,
+      unitWeightKg,
+      unitWeightLabel: "kg/m",
+      pieceWeightKg,
+      totalWeightKg: pieceWeightKg * row.quantity,
+    };
+  }
+
+  if (row.productType === "flat_steel_bar") {
+    const reference = findFlatSteelBarReference(row.specId, row.thicknessId);
+
+    if (!reference) {
+      return {
+        rowId: row.id,
+        hasWeight: false,
+        unitWeightLabel: "kg/m",
+      };
+    }
+
+    const unitWeightKg =
+      reference.thickness.referenceWeightKgPerPiece / reference.spec.referenceLengthM;
+    const pieceWeightKg = reference.thickness.referenceWeightKgPerPiece;
+
+    return {
+      rowId: row.id,
+      hasWeight: true,
+      unitWeightKg,
+      unitWeightLabel: "kg/m",
+      pieceWeightKg,
+      totalWeightKg: pieceWeightKg * row.quantity,
+    };
+  }
+
   return {
     rowId: row.id,
     hasWeight: false,
@@ -334,6 +462,14 @@ export function calculateAngleSteelKgPerMeter(
   thicknessMm: number,
 ) {
   return thicknessMm * (legAMm + legBMm - thicknessMm) * STEEL_DENSITY_FACTOR;
+}
+
+export function calculateRoundSteelBarKgPerMeter(diameterMm: number) {
+  return diameterMm * diameterMm * 0.00617;
+}
+
+export function calculateFlatSteelBarKgPerMeter(widthMm: number, thicknessMm: number) {
+  return widthMm * thicknessMm * STEEL_DENSITY_FACTOR;
 }
 
 export function calculateModuleSubtotal(module: MaterialModule) {

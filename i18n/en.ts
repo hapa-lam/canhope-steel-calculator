@@ -30,6 +30,9 @@ export const en: typeof zh = {
     pre_galvanized_square_rectangular_tube: "Pre-Galvanized Square / Rectangular Tube",
     angle_steel: "Angle Steel",
     channel_steel: "Channel Steel",
+    i_beam: "I-Beam",
+    round_steel_bar: "Round Steel Bar",
+    flat_steel_bar: "Flat Steel Bar",
     grooved_fitting: "Grooved Fittings",
   },
   materialList: {
@@ -54,6 +57,7 @@ export const en: typeof zh = {
     thicknessShort: "Thickness",
     theoreticalWeight: "Theoretical Weight",
     piecesPerBundle: "Pieces per Bundle",
+    diameter: "Diameter",
     length: "Length",
     quantity: "Quantity",
     unitWeight: "Unit Weight",
@@ -141,6 +145,7 @@ export const en: typeof zh = {
   },
   notices: {
     weightPending: "Weight Pending",
+    notProvided: "Not provided",
   },
   units: {
     meter: "m",

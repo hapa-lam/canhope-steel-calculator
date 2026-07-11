@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.8.0
+
+### Added
+
+- Added I-Beam with 14 selectable reference-weight records.
+- Added Round Steel Bar with 8 diameter records.
+- Added Flat Steel Bar with 15 width and thickness records.
+- Added pieces-per-bundle data for the new structural steel products.
+- Added standard and supported custom weight calculations for round steel and flat bar.
+
 ## v0.7.2
 
 ### Changed

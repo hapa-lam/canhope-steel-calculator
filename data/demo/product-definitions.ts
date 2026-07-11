@@ -44,6 +44,24 @@ export const productDefinitions: ProductDefinition[] = [
     category: "型钢类",
   },
   {
+    type: "i_beam",
+    name: "工字钢",
+    englishName: "I-Beam",
+    category: "型钢类",
+  },
+  {
+    type: "round_steel_bar",
+    name: "圆钢",
+    englishName: "Round Steel Bar",
+    category: "型钢类",
+  },
+  {
+    type: "flat_steel_bar",
+    name: "扁铁",
+    englishName: "Flat Steel Bar",
+    category: "型钢类",
+  },
+  {
     type: "grooved_fitting",
     name: "沟槽管件",
     englishName: "Grooved Fittings",
