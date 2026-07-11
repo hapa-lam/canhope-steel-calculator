@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { productDefinitions } from "@/data/demo/product-definitions";
 import {
-  angleSteelSpecs,
   channelSteelSpecs,
   groovedFittingOptions,
-  type StandardSpec,
 } from "@/data/demo/steel-specs";
+import {
+  angleSteelSpecifications,
+  getAngleSteelThicknessId,
+} from "@/data/angle-steel/angle-steel-data";
 import {
   galvanizedPipeData,
   getGalvanizedPipeThicknessId,
@@ -24,6 +26,10 @@ import {
   galvanizedSquareRectangularTubeData,
   getGalvanizedSquareRectangularTubeThicknessId,
 } from "@/data/galvanized-square-rectangular-tube/galvanized-square-rectangular-tube-data";
+import {
+  preGalvanizedSquareRectangularTubeData,
+  getPreGalvanizedSquareRectangularTubeThicknessId,
+} from "@/data/pre-galvanized-square-rectangular-tube/pre-galvanized-square-rectangular-tube-data";
 import { isLocale, messages, type Locale, type Messages } from "@/i18n";
 import {
   calculateModuleSubtotal,
@@ -44,6 +50,7 @@ import {
   formatGalvanizedSheetPipeSpec,
   formatBlackSteelPipeSpec,
   formatGalvanizedSquareRectangularTubeSpec,
+  formatAngleSteelSpec,
   formatThicknessValue,
 } from "@/lib/spec-formatters";
 import type {
@@ -51,6 +58,7 @@ import type {
   MaterialModule,
   MaterialRow,
   ProductType,
+  SquareTubeProductType,
   SteelPipeProductType,
 } from "@/types/materials";
 
@@ -69,14 +77,57 @@ type CustomerInfo = {
   notes: string;
 };
 
+type CustomSizeProductType = SteelPipeProductType | SquareTubeProductType | "angle_steel";
+
 const steelPipeProductTypes: SteelPipeProductType[] = [
   "galvanized_pipe",
   "galvanized_sheet_pipe",
   "black_steel_pipe",
 ];
 
+const squareTubeProductTypes: SquareTubeProductType[] = [
+  "galvanized_square_rectangular_tube",
+  "pre_galvanized_square_rectangular_tube",
+];
+
 function isSteelPipeProduct(type: string): type is SteelPipeProductType {
   return steelPipeProductTypes.includes(type as SteelPipeProductType);
+}
+
+function isSquareTubeProduct(type: string): type is SquareTubeProductType {
+  return squareTubeProductTypes.includes(type as SquareTubeProductType);
+}
+
+function getSquareTubeData(productType: SquareTubeProductType) {
+  return productType === "galvanized_square_rectangular_tube"
+    ? galvanizedSquareRectangularTubeData
+    : preGalvanizedSquareRectangularTubeData;
+}
+
+function getSquareTubeThicknessId(productType: SquareTubeProductType, thicknessMm: number) {
+  return productType === "galvanized_square_rectangular_tube"
+    ? getGalvanizedSquareRectangularTubeThicknessId(thicknessMm)
+    : getPreGalvanizedSquareRectangularTubeThicknessId(thicknessMm);
+}
+
+function getDefaultSquareTubeSelection(productType: SquareTubeProductType) {
+  const firstSpec = getSquareTubeData(productType)[0];
+  const firstThickness = firstSpec?.thicknessOptions[0];
+
+  return {
+    specId: firstSpec?.id ?? "",
+    thicknessId: firstSpec && firstThickness ? getSquareTubeThicknessId(productType, firstThickness.thicknessMm) : "",
+  };
+}
+
+function getDefaultAngleSteelSelection() {
+  const firstSpec = angleSteelSpecifications[0];
+  const firstThickness = firstSpec?.thicknessOptions[0];
+
+  return {
+    specId: firstSpec?.id ?? "",
+    thicknessId: firstThickness ? getAngleSteelThicknessId(firstThickness.thicknessMm) : "",
+  };
 }
 
 function createId(prefix: string) {
@@ -103,13 +154,15 @@ function createEmptyRow(productType: ProductType): MaterialRow {
     };
   }
 
-  if (productType === "galvanized_square_rectangular_tube") {
+  if (isSquareTubeProduct(productType)) {
+    const defaultSelection = getDefaultSquareTubeSelection(productType);
+
     return {
       id,
       productType,
       dimensionMode: "standard",
-      specId: "",
-      thicknessId: "",
+      specId: defaultSelection.specId,
+      thicknessId: defaultSelection.thicknessId,
       lengthM: 6,
       quantity: 0,
       quantityUnit: "支",
@@ -117,11 +170,14 @@ function createEmptyRow(productType: ProductType): MaterialRow {
   }
 
   if (productType === "angle_steel") {
+    const defaultSelection = getDefaultAngleSteelSelection();
+
     return {
       id,
       productType,
-      specId: "",
-      thicknessId: "",
+      dimensionMode: "standard",
+      specId: defaultSelection.specId,
+      thicknessId: defaultSelection.thicknessId,
       lengthM: 6,
       quantity: 0,
       quantityUnit: "支",
@@ -150,7 +206,7 @@ function createEmptyRow(productType: ProductType): MaterialRow {
   };
 }
 
-function createCustomRow(productType: SteelPipeProductType | "galvanized_square_rectangular_tube"): MaterialRow {
+function createCustomRow(productType: CustomSizeProductType): MaterialRow {
   const id = createId("row");
 
   if (isSteelPipeProduct(productType)) {
@@ -162,6 +218,22 @@ function createCustomRow(productType: SteelPipeProductType | "galvanized_square_
       thicknessId: "",
       customOuterDiameterMm: 60,
       customThicknessMm: 2.5,
+      lengthM: 6,
+      quantity: 0,
+      quantityUnit: "支",
+    };
+  }
+
+  if (productType === "angle_steel") {
+    return {
+      id,
+      productType,
+      dimensionMode: "custom",
+      specId: "",
+      thicknessId: "",
+      customLegAMm: 50,
+      customLegBMm: 50,
+      customThicknessMm: 4,
       lengthM: 6,
       quantity: 0,
       quantityUnit: "支",
@@ -197,18 +269,6 @@ function categoryName(category: (typeof categories)[number], m: Messages) {
   }
 
   return m.productCategories.fireFittings;
-}
-
-function getSpecLabel(specs: StandardSpec[], specId: string) {
-  return specs.find((spec) => spec.id === specId)?.label ?? "";
-}
-
-function getThicknessLabel(specs: StandardSpec[], specId: string, thicknessId: string) {
-  return (
-    specs
-      .find((spec) => spec.id === specId)
-      ?.thicknesses.find((thickness) => thickness.id === thicknessId)?.label ?? ""
-  );
 }
 
 function getGalvanizedPipeSelectedSpecLabel(specId: string, locale: Locale) {
@@ -253,19 +313,34 @@ function getBlackSteelPipeSelectedThicknessLabel(specId: string, thicknessId: st
   return thickness ? formatThicknessValue(thickness.thicknessMm, locale) : "";
 }
 
-function getGalvanizedSquareRectangularTubeSelectedSpecLabel(specId: string) {
-  const spec = galvanizedSquareRectangularTubeData.find((item) => item.id === specId);
+function getSquareTubeSelectedSpecLabel(productType: SquareTubeProductType, specId: string) {
+  const spec = getSquareTubeData(productType).find((item) => item.id === specId);
   return spec ? formatGalvanizedSquareRectangularTubeSpec(spec) : "";
 }
 
-function getGalvanizedSquareRectangularTubeSelectedThicknessLabel(
+function getSquareTubeSelectedThicknessLabel(
+  productType: SquareTubeProductType,
   specId: string,
   thicknessId: string,
   locale: Locale,
 ) {
-  const spec = galvanizedSquareRectangularTubeData.find((item) => item.id === specId);
+  const spec = getSquareTubeData(productType).find((item) => item.id === specId);
   const thickness = spec?.thicknessOptions.find(
-    (item) => getGalvanizedSquareRectangularTubeThicknessId(item.thicknessMm) === thicknessId,
+    (item) => getSquareTubeThicknessId(productType, item.thicknessMm) === thicknessId,
+  );
+
+  return thickness ? formatThicknessValue(thickness.thicknessMm, locale) : "";
+}
+
+function getAngleSteelSelectedSpecLabel(specId: string) {
+  const spec = angleSteelSpecifications.find((item) => item.id === specId);
+  return spec ? formatAngleSteelSpec(spec) : "";
+}
+
+function getAngleSteelSelectedThicknessLabel(specId: string, thicknessId: string, locale: Locale) {
+  const spec = angleSteelSpecifications.find((item) => item.id === specId);
+  const thickness = spec?.thicknessOptions.find(
+    (item) => getAngleSteelThicknessId(item.thicknessMm) === thicknessId,
   );
 
   return thickness ? formatThicknessValue(thickness.thicknessMm, locale) : "";
@@ -289,7 +364,8 @@ function isFixedLengthStandardSteelPipeRow(row: MaterialRow) {
     (row.productType === "galvanized_pipe" ||
       row.productType === "galvanized_sheet_pipe" ||
       row.productType === "black_steel_pipe" ||
-      row.productType === "galvanized_square_rectangular_tube") &&
+      isSquareTubeProduct(row.productType) ||
+      row.productType === "angle_steel") &&
     row.dimensionMode !== "custom"
   );
 }
@@ -326,7 +402,7 @@ function getRowDescription(row: MaterialRow, locale: Locale, m: Messages) {
       .join(" / ");
   }
 
-  if (row.productType === "galvanized_square_rectangular_tube") {
+  if (isSquareTubeProduct(row.productType)) {
     if (row.dimensionMode === "custom") {
       return `${m.customSize.customSpec} ${productName(row.productType, m)} / ${row.customWidthMm || 0}×${
         row.customHeightMm || 0
@@ -334,17 +410,23 @@ function getRowDescription(row: MaterialRow, locale: Locale, m: Messages) {
     }
 
     return [
-      getGalvanizedSquareRectangularTubeSelectedSpecLabel(row.specId),
-      getGalvanizedSquareRectangularTubeSelectedThicknessLabel(row.specId, row.thicknessId, locale),
+      getSquareTubeSelectedSpecLabel(row.productType, row.specId),
+      getSquareTubeSelectedThicknessLabel(row.productType, row.specId, row.thicknessId, locale),
     ]
       .filter(Boolean)
       .join(" / ");
   }
 
   if (row.productType === "angle_steel") {
+    if (row.dimensionMode === "custom") {
+      return `${m.customSize.customSpec} ${productName(row.productType, m)} / ${row.customLegAMm || 0}×${
+        row.customLegBMm || 0
+      } mm / ${m.fields.thickness} ${formatThicknessValue(row.customThicknessMm || 0, locale)}`;
+    }
+
     return [
-      getSpecLabel(angleSteelSpecs, row.specId),
-      getThicknessLabel(angleSteelSpecs, row.specId, row.thicknessId),
+      getAngleSteelSelectedSpecLabel(row.specId),
+      getAngleSteelSelectedThicknessLabel(row.specId, row.thicknessId, locale),
     ]
       .filter(Boolean)
       .join(" / ");
@@ -393,22 +475,24 @@ function normalizeStoredMaterialList(value: MaterialList): MaterialList {
 
         if (
           isSteelPipeProduct(normalizedRow.productType) ||
-          normalizedRow.productType === "galvanized_square_rectangular_tube"
+          isSquareTubeProduct(normalizedRow.productType) ||
+          normalizedRow.productType === "angle_steel"
         ) {
           const lengthM = Number.isFinite(normalizedRow.lengthM) ? normalizedRow.lengthM : 6;
           const dimensionMode = normalizedRow.dimensionMode ?? "standard";
 
           if (
-            normalizedRow.productType === "galvanized_square_rectangular_tube" &&
+            isSquareTubeProduct(normalizedRow.productType) &&
             dimensionMode === "standard"
           ) {
-            const firstSpec = galvanizedSquareRectangularTubeData[0];
+            const squareTubeData = getSquareTubeData(normalizedRow.productType);
+            const firstSpec = squareTubeData[0];
             const matchingSpec =
-              galvanizedSquareRectangularTubeData.find((spec) => spec.id === normalizedRow.specId) ??
+              squareTubeData.find((spec) => spec.id === normalizedRow.specId) ??
               firstSpec;
             const matchingThickness = matchingSpec?.thicknessOptions.find(
               (thickness) =>
-                getGalvanizedSquareRectangularTubeThicknessId(thickness.thicknessMm) ===
+                getSquareTubeThicknessId(normalizedRow.productType, thickness.thicknessMm) ===
                 normalizedRow.thicknessId,
             ) ?? matchingSpec?.thicknessOptions[0];
 
@@ -417,7 +501,28 @@ function normalizeStoredMaterialList(value: MaterialList): MaterialList {
               dimensionMode,
               specId: matchingSpec?.id ?? "",
               thicknessId: matchingThickness
-                ? getGalvanizedSquareRectangularTubeThicknessId(matchingThickness.thicknessMm)
+                ? getSquareTubeThicknessId(normalizedRow.productType, matchingThickness.thicknessMm)
+                : "",
+              lengthM: 6,
+              quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
+            };
+          }
+
+          if (normalizedRow.productType === "angle_steel" && dimensionMode === "standard") {
+            const firstSpec = angleSteelSpecifications[0];
+            const matchingSpec =
+              angleSteelSpecifications.find((spec) => spec.id === normalizedRow.specId) ??
+              firstSpec;
+            const matchingThickness = matchingSpec?.thicknessOptions.find(
+              (thickness) => getAngleSteelThicknessId(thickness.thicknessMm) === normalizedRow.thicknessId,
+            ) ?? matchingSpec?.thicknessOptions[0];
+
+            return {
+              ...normalizedRow,
+              dimensionMode,
+              specId: matchingSpec?.id ?? "",
+              thicknessId: matchingThickness
+                ? getAngleSteelThicknessId(matchingThickness.thicknessMm)
                 : "",
               lengthM: 6,
               quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
@@ -449,23 +554,8 @@ function normalizeStoredMaterialList(value: MaterialList): MaterialList {
 
 export default function Home() {
   const [locale, setLocale] = useState<Locale>("zh");
-  const [materialList, setMaterialList] = useState<MaterialList>(() => {
-    if (typeof window === "undefined") {
-      return { modules: [] };
-    }
-
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (!saved) {
-      return { modules: [] };
-    }
-
-    try {
-      return normalizeStoredMaterialList(JSON.parse(saved) as MaterialList);
-    } catch {
-      window.localStorage.removeItem(STORAGE_KEY);
-      return { modules: [] };
-    }
-  });
+  const [materialList, setMaterialList] = useState<MaterialList>({ modules: [] });
+  const [hasRestoredMaterialList, setHasRestoredMaterialList] = useState(false);
   const m = messages[locale];
   const [activeProduct, setActiveProduct] = useState<ProductType | null>(null);
   const [isRfqOpen, setIsRfqOpen] = useState(false);
@@ -482,8 +572,25 @@ export default function Home() {
   const moduleRefs = useRef<Partial<Record<ProductType, HTMLDivElement | null>>>({});
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(materialList));
-  }, [materialList]);
+    window.setTimeout(() => {
+      const saved = window.localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          setMaterialList(normalizeStoredMaterialList(JSON.parse(saved) as MaterialList));
+        } catch {
+          window.localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+
+      setHasRestoredMaterialList(true);
+    }, 0);
+  }, []);
+
+  useEffect(() => {
+    if (hasRestoredMaterialList) {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(materialList));
+    }
+  }, [hasRestoredMaterialList, materialList]);
 
   useEffect(() => {
     const savedLocale = window.localStorage.getItem(LOCALE_STORAGE_KEY);
@@ -524,6 +631,13 @@ export default function Home() {
             lines.push(`${m.fields.length}: ${formatLength(getDisplayLengthM(row), locale)}`);
           }
           lines.push(`${m.fields.quantity}: ${formatQuantity(row.quantity, row.quantityUnit, locale)}`);
+          if (
+            (row.productType === "pre_galvanized_square_rectangular_tube" ||
+              row.productType === "angle_steel") &&
+            calc.hasWeight
+          ) {
+            lines.push(`${m.fields.pieceWeight}: ${formatKg(calc.pieceWeightKg, locale, m.notices.weightPending)}`);
+          }
           lines.push(
             `${m.fields.totalWeight}: ${
               calc.hasWeight ? formatTonFromKg(calc.totalWeightKg, locale, m.notices.weightPending) : m.notices.weightPending
@@ -565,8 +679,14 @@ export default function Home() {
         const calc = calculateRow(row);
         const description = getRowDescription(row, locale, m) || m.materialList.specPending;
         const length = "lengthM" in row ? `，${m.fields.length} ${formatLength(getDisplayLengthM(row), locale)}` : "";
+        const pieceWeight =
+          row.productType === "pre_galvanized_square_rectangular_tube" && calc.hasWeight
+            ? `，${m.fields.pieceWeight} ${formatKg(calc.pieceWeightKg, locale, m.notices.weightPending)}`
+            : row.productType === "angle_steel" && calc.hasWeight
+            ? `，${m.fields.pieceWeight} ${formatKg(calc.pieceWeightKg, locale, m.notices.weightPending)}`
+            : "";
         lines.push(
-          `${index + 1}. ${description}${length}，${m.fields.quantity} ${formatQuantity(row.quantity, row.quantityUnit, locale)}，${
+          `${index + 1}. ${description}${length}，${m.fields.quantity} ${formatQuantity(row.quantity, row.quantityUnit, locale)}${pieceWeight}，${
             m.fields.totalWeight
           } ${calc.hasWeight ? formatTonFromKg(calc.totalWeightKg, locale, m.notices.weightPending) : m.notices.weightPending
           }`,
@@ -630,7 +750,7 @@ export default function Home() {
     addProduct(productType);
   }
 
-  function addCustomRow(productType: SteelPipeProductType | "galvanized_square_rectangular_tube") {
+  function addCustomRow(productType: CustomSizeProductType) {
     setActiveProduct(productType);
     setMaterialList((current) => {
       const existing = current.modules.find((module) => module.productType === productType);
@@ -886,7 +1006,7 @@ function ProductModule({
   module: MaterialModule;
   setModuleRef: (node: HTMLDivElement | null) => void;
   onAddRow: (productType: ProductType) => void;
-  onAddCustomRow: (productType: SteelPipeProductType | "galvanized_square_rectangular_tube") => void;
+  onAddCustomRow: (productType: CustomSizeProductType) => void;
   onDeleteModule: (moduleId: string) => void;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
   onDeleteRow: (moduleId: string, rowId: string) => void;
@@ -969,7 +1089,7 @@ function ProductModule({
         </>
       )}
 
-      {isSteelPipeProduct(module.productType) || module.productType === "galvanized_square_rectangular_tube" ? (
+      {isSteelPipeProduct(module.productType) || isSquareTubeProduct(module.productType) || module.productType === "angle_steel" ? (
         <button className="custom-size-link" type="button" onClick={() => onAddCustomRow(module.productType)}>
           {m.customSize.noSuitableSpec}
           {locale === "zh" ? "" : " "}
@@ -983,10 +1103,10 @@ function ProductModule({
 function ProductTableHead({ productType, m }: { productType: ProductType; m: Messages }) {
   const commonEnd = [m.fields.quantity, m.fields.unitWeight, m.fields.pieceWeightFull, m.fields.totalWeight, m.fields.action];
   const columns =
-    isSteelPipeProduct(productType) || productType === "galvanized_square_rectangular_tube"
+    isSteelPipeProduct(productType) || isSquareTubeProduct(productType)
       ? [m.fields.spec, m.fields.thickness, m.fields.length, ...commonEnd]
       : productType === "angle_steel"
-        ? [m.fields.specModel, m.fields.thicknessShort, m.fields.length, ...commonEnd]
+        ? [m.fields.spec, m.fields.thickness, m.fields.length, ...commonEnd]
         : productType === "channel_steel"
           ? [m.fields.specModel, m.fields.length, ...commonEnd]
           : [m.fields.fittingType, m.fields.size, m.fields.modelOrAngle, ...commonEnd];
@@ -1017,7 +1137,7 @@ function ProductRow({
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
   onDeleteRow: (moduleId: string, rowId: string) => void;
   onDuplicateRow: (moduleId: string, row: MaterialRow) => void;
-  onAddCustomRow: (productType: SteelPipeProductType | "galvanized_square_rectangular_tube") => void;
+  onAddCustomRow: (productType: CustomSizeProductType) => void;
   locale: Locale;
   m: Messages;
 }) {
@@ -1079,7 +1199,7 @@ function ProductRow({
     );
   }
 
-  if (row.productType === "galvanized_square_rectangular_tube") {
+  if (isSquareTubeProduct(row.productType)) {
     return (
       <tr>
         {row.dimensionMode === "custom" ? (
@@ -1087,15 +1207,16 @@ function ProductRow({
         ) : (
           <>
             <td>
-              <GalvanizedSquareRectangularTubeSpecSelect
+              <SquareTubeSpecSelect
+                productType={row.productType}
                 value={row.specId}
                 onChange={(specId) => {
-                  const nextSpec = galvanizedSquareRectangularTubeData.find((spec) => spec.id === specId);
+                  const nextSpec = getSquareTubeData(row.productType).find((spec) => spec.id === specId);
                   const nextThickness = nextSpec?.thicknessOptions[0];
                   onUpdateRow(row.id, {
                     specId,
                     thicknessId: nextThickness
-                      ? getGalvanizedSquareRectangularTubeThicknessId(nextThickness.thicknessMm)
+                      ? getSquareTubeThicknessId(row.productType, nextThickness.thicknessMm)
                       : "",
                     lengthM: 6,
                   });
@@ -1104,7 +1225,8 @@ function ProductRow({
               />
             </td>
             <td>
-              <GalvanizedSquareRectangularTubeThicknessSelect
+              <SquareTubeThicknessSelect
+                productType={row.productType}
                 specId={row.specId}
                 value={row.thicknessId}
                 onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
@@ -1124,24 +1246,37 @@ function ProductRow({
   if (row.productType === "angle_steel") {
     return (
       <tr>
-        <td>
-          <SpecSelect
-            specs={angleSteelSpecs}
-            value={row.specId}
-            onChange={(specId) => onUpdateRow(row.id, { specId, thicknessId: "" })}
-            m={m}
-          />
-        </td>
-        <td>
-          <ThicknessSelect
-            specs={angleSteelSpecs}
-            specId={row.specId}
-            value={row.thicknessId}
-            onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
-            m={m}
-          />
-        </td>
-        <LengthInput row={row} onUpdateRow={onUpdateRow} locale={locale} m={m} />
+        {row.dimensionMode === "custom" ? (
+          <CustomAngleCells row={row} onUpdateRow={onUpdateRow} m={m} />
+        ) : (
+          <>
+            <td>
+              <AngleSteelSpecSelect
+                value={row.specId}
+                onChange={(specId) => {
+                  const nextSpec = angleSteelSpecifications.find((spec) => spec.id === specId);
+                  const nextThickness = nextSpec?.thicknessOptions[0];
+                  onUpdateRow(row.id, {
+                    specId,
+                    thicknessId: nextThickness ? getAngleSteelThicknessId(nextThickness.thicknessMm) : "",
+                    lengthM: 6,
+                  });
+                }}
+                m={m}
+              />
+            </td>
+            <td>
+              <AngleSteelThicknessSelect
+                specId={row.specId}
+                value={row.thicknessId}
+                onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
+                locale={locale}
+                m={m}
+              />
+            </td>
+          </>
+        )}
+        <LengthInput row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
         <QuantityInput row={row} onUpdateRow={onUpdateRow} locale={locale} />
         {actionCells}
       </tr>
@@ -1192,7 +1327,7 @@ function MobileRowCard({
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
   onDeleteRow: (moduleId: string, rowId: string) => void;
   onDuplicateRow: (moduleId: string, row: MaterialRow) => void;
-  onAddCustomRow: (productType: SteelPipeProductType | "galvanized_square_rectangular_tube") => void;
+  onAddCustomRow: (productType: CustomSizeProductType) => void;
   locale: Locale;
   m: Messages;
 }) {
@@ -1252,11 +1387,11 @@ function ProductRowFields({
 }: {
   row: MaterialRow;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
-  onAddCustomRow: (productType: SteelPipeProductType | "galvanized_square_rectangular_tube") => void;
+  onAddCustomRow: (productType: CustomSizeProductType) => void;
   locale: Locale;
   m: Messages;
 }) {
-  if (isSteelPipeProduct(row.productType) || row.productType === "galvanized_square_rectangular_tube") {
+  if (isSteelPipeProduct(row.productType) || isSquareTubeProduct(row.productType)) {
     if (row.dimensionMode === "custom") {
       return (
         <>
@@ -1320,15 +1455,16 @@ function ProductRowFields({
               m={m}
             />
           ) : (
-            <GalvanizedSquareRectangularTubeSpecSelect
+            <SquareTubeSpecSelect
+              productType={row.productType}
               value={row.specId}
               onChange={(specId) => {
-                const nextSpec = galvanizedSquareRectangularTubeData.find((spec) => spec.id === specId);
+                const nextSpec = getSquareTubeData(row.productType).find((spec) => spec.id === specId);
                 const nextThickness = nextSpec?.thicknessOptions[0];
                 onUpdateRow(row.id, {
                   specId,
                   thicknessId: nextThickness
-                    ? getGalvanizedSquareRectangularTubeThicknessId(nextThickness.thicknessMm)
+                    ? getSquareTubeThicknessId(row.productType, nextThickness.thicknessMm)
                     : "",
                   lengthM: 6,
                 });
@@ -1349,7 +1485,8 @@ function ProductRowFields({
               m={m}
             />
           ) : (
-            <GalvanizedSquareRectangularTubeThicknessSelect
+            <SquareTubeThicknessSelect
+              productType={row.productType}
               specId={row.specId}
               value={row.thicknessId}
               onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
@@ -1364,15 +1501,62 @@ function ProductRowFields({
   }
 
   if (row.productType === "angle_steel") {
+    if (row.dimensionMode === "custom") {
+      return (
+        <>
+          <label className="mobile-field-label">
+            {m.fields.legA}
+            <NumberField
+              value={row.customLegAMm ?? 0}
+              onChange={(value) => onUpdateRow(row.id, { customLegAMm: value })}
+            />
+          </label>
+          <label className="mobile-field-label">
+            {m.fields.legB}
+            <NumberField
+              value={row.customLegBMm ?? 0}
+              onChange={(value) => onUpdateRow(row.id, { customLegBMm: value })}
+            />
+          </label>
+          <label className="mobile-field-label">
+            {m.fields.thickness}
+            <NumberField
+              value={row.customThicknessMm ?? 0}
+              onChange={(value) => onUpdateRow(row.id, { customThicknessMm: value })}
+            />
+          </label>
+          <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        </>
+      );
+    }
+
     return (
       <>
         <label className="mobile-field-label">
           {m.fields.spec}
-          <SpecSelect specs={angleSteelSpecs} value={row.specId} onChange={(specId) => onUpdateRow(row.id, { specId, thicknessId: "" })} m={m} />
+          <AngleSteelSpecSelect
+            value={row.specId}
+            onChange={(specId) => {
+              const nextSpec = angleSteelSpecifications.find((spec) => spec.id === specId);
+              const nextThickness = nextSpec?.thicknessOptions[0];
+              onUpdateRow(row.id, {
+                specId,
+                thicknessId: nextThickness ? getAngleSteelThicknessId(nextThickness.thicknessMm) : "",
+                lengthM: 6,
+              });
+            }}
+            m={m}
+          />
         </label>
         <label className="mobile-field-label">
-          {m.fields.thicknessShort}
-          <ThicknessSelect specs={angleSteelSpecs} specId={row.specId} value={row.thicknessId} onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })} m={m} />
+          {m.fields.thickness}
+          <AngleSteelThicknessSelect
+            specId={row.specId}
+            value={row.thicknessId}
+            onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
+            locale={locale}
+            m={m}
+          />
         </label>
         <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
       </>
@@ -1424,7 +1608,7 @@ function MobileLengthQuantity({
 }: {
   row: Exclude<MaterialRow, { productType: "grooved_fitting" }>;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
-  onAddCustomRow: (productType: SteelPipeProductType | "galvanized_square_rectangular_tube") => void;
+  onAddCustomRow: (productType: CustomSizeProductType) => void;
   locale: Locale;
   m: Messages;
 }) {
@@ -1507,7 +1691,7 @@ function CustomSquareCells({
   onUpdateRow,
   m,
 }: {
-  row: Extract<MaterialRow, { productType: "galvanized_square_rectangular_tube" }>;
+  row: Extract<MaterialRow, { productType: SquareTubeProductType }>;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
   m: Messages;
 }) {
@@ -1524,6 +1708,46 @@ function CustomSquareCells({
           <NumberField
             value={row.customHeightMm ?? 0}
             onChange={(value) => onUpdateRow(row.id, { customHeightMm: value })}
+          />
+          <span>mm</span>
+        </div>
+      </td>
+      <td>
+        <div className="custom-dimension-field">
+          <span>{m.fields.thickness}</span>
+          <NumberField
+            value={row.customThicknessMm ?? 0}
+            onChange={(value) => onUpdateRow(row.id, { customThicknessMm: value })}
+          />
+          <span>mm</span>
+        </div>
+      </td>
+    </>
+  );
+}
+
+function CustomAngleCells({
+  row,
+  onUpdateRow,
+  m,
+}: {
+  row: Extract<MaterialRow, { productType: "angle_steel" }>;
+  onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
+  m: Messages;
+}) {
+  return (
+    <>
+      <td>
+        <div className="custom-dimension-field custom-dimension-field-wide">
+          <span>{m.fields.legA}</span>
+          <NumberField
+            value={row.customLegAMm ?? 0}
+            onChange={(value) => onUpdateRow(row.id, { customLegAMm: value })}
+          />
+          <span>{m.fields.legB}</span>
+          <NumberField
+            value={row.customLegBMm ?? 0}
+            onChange={(value) => onUpdateRow(row.id, { customLegBMm: value })}
           />
           <span>mm</span>
         </div>
@@ -1669,7 +1893,63 @@ function SteelPipeThicknessSelect({
   );
 }
 
-function GalvanizedSquareRectangularTubeSpecSelect({
+function SquareTubeSpecSelect({
+  productType,
+  value,
+  onChange,
+  m,
+}: {
+  productType: SquareTubeProductType;
+  value: string;
+  onChange: (value: string) => void;
+  m: Messages;
+}) {
+  return (
+    <select className="field" value={value} onChange={(event) => onChange(event.target.value)}>
+      <option value="">{m.fields.selectSpec}</option>
+      {getSquareTubeData(productType).map((spec) => (
+        <option key={spec.id} value={spec.id}>
+          {formatGalvanizedSquareRectangularTubeSpec(spec)}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function SquareTubeThicknessSelect({
+  productType,
+  specId,
+  value,
+  onChange,
+  locale,
+  m,
+}: {
+  productType: SquareTubeProductType;
+  specId: string;
+  value: string;
+  onChange: (value: string) => void;
+  locale: Locale;
+  m: Messages;
+}) {
+  const thicknesses =
+    getSquareTubeData(productType).find((spec) => spec.id === specId)?.thicknessOptions ?? [];
+
+  return (
+    <select className="field" value={value} onChange={(event) => onChange(event.target.value)} disabled={!specId}>
+      <option value="">{thicknesses.length > 0 ? m.fields.selectThickness : m.fields.thicknessDataPending}</option>
+      {thicknesses.map((thickness) => (
+        <option
+          key={getSquareTubeThicknessId(productType, thickness.thicknessMm)}
+          value={getSquareTubeThicknessId(productType, thickness.thicknessMm)}
+        >
+          {formatThicknessValue(thickness.thicknessMm, locale)}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function AngleSteelSpecSelect({
   value,
   onChange,
   m,
@@ -1681,16 +1961,16 @@ function GalvanizedSquareRectangularTubeSpecSelect({
   return (
     <select className="field" value={value} onChange={(event) => onChange(event.target.value)}>
       <option value="">{m.fields.selectSpec}</option>
-      {galvanizedSquareRectangularTubeData.map((spec) => (
+      {angleSteelSpecifications.map((spec) => (
         <option key={spec.id} value={spec.id}>
-          {formatGalvanizedSquareRectangularTubeSpec(spec)}
+          {formatAngleSteelSpec(spec)}
         </option>
       ))}
     </select>
   );
 }
 
-function GalvanizedSquareRectangularTubeThicknessSelect({
+function AngleSteelThicknessSelect({
   specId,
   value,
   onChange,
@@ -1704,67 +1984,17 @@ function GalvanizedSquareRectangularTubeThicknessSelect({
   m: Messages;
 }) {
   const thicknesses =
-    galvanizedSquareRectangularTubeData.find((spec) => spec.id === specId)?.thicknessOptions ?? [];
+    angleSteelSpecifications.find((spec) => spec.id === specId)?.thicknessOptions ?? [];
 
   return (
     <select className="field" value={value} onChange={(event) => onChange(event.target.value)} disabled={!specId}>
       <option value="">{thicknesses.length > 0 ? m.fields.selectThickness : m.fields.thicknessDataPending}</option>
       {thicknesses.map((thickness) => (
         <option
-          key={getGalvanizedSquareRectangularTubeThicknessId(thickness.thicknessMm)}
-          value={getGalvanizedSquareRectangularTubeThicknessId(thickness.thicknessMm)}
+          key={getAngleSteelThicknessId(thickness.thicknessMm)}
+          value={getAngleSteelThicknessId(thickness.thicknessMm)}
         >
           {formatThicknessValue(thickness.thicknessMm, locale)}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-function SpecSelect({
-  specs,
-  value,
-  onChange,
-  m,
-}: {
-  specs: StandardSpec[];
-  value: string;
-  onChange: (value: string) => void;
-  m: Messages;
-}) {
-  return (
-    <select className="field" value={value} onChange={(event) => onChange(event.target.value)}>
-      <option value="">{m.fields.selectSpec}</option>
-      {specs.map((spec) => (
-        <option key={spec.id} value={spec.id}>
-          {spec.label}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-function ThicknessSelect({
-  specs,
-  specId,
-  value,
-  onChange,
-  m,
-}: {
-  specs: StandardSpec[];
-  specId: string;
-  value: string;
-  onChange: (value: string) => void;
-  m: Messages;
-}) {
-  const thicknesses = specs.find((spec) => spec.id === specId)?.thicknesses ?? [];
-
-  return (
-    <select className="field" value={value} onChange={(event) => onChange(event.target.value)} disabled={!specId}>
-      <option value="">{m.fields.selectThickness}</option>
-      {thicknesses.map((thickness) => (
-        <option key={thickness.id} value={thickness.id}>
-          {thickness.label}
         </option>
       ))}
     </select>
@@ -1780,7 +2010,7 @@ function LengthInput({
 }: {
   row: Exclude<MaterialRow, { productType: "grooved_fitting" }>;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
-  onAddCustomRow?: (productType: SteelPipeProductType | "galvanized_square_rectangular_tube") => void;
+  onAddCustomRow?: (productType: CustomSizeProductType) => void;
   locale?: Locale;
   m: Messages;
 }) {
@@ -1819,8 +2049,8 @@ function LockedLengthField({
   lengthM,
   compact = false,
 }: {
-  productType: SteelPipeProductType | "galvanized_square_rectangular_tube";
-  onAddCustomRow: (productType: SteelPipeProductType | "galvanized_square_rectangular_tube") => void;
+  productType: CustomSizeProductType;
+  onAddCustomRow: (productType: CustomSizeProductType) => void;
   locale: Locale;
   m: Messages;
   lengthM: number;

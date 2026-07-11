@@ -3,6 +3,7 @@ export type ProductType =
   | "galvanized_sheet_pipe"
   | "black_steel_pipe"
   | "galvanized_square_rectangular_tube"
+  | "pre_galvanized_square_rectangular_tube"
   | "angle_steel"
   | "channel_steel"
   | "grooved_fitting";
@@ -11,6 +12,10 @@ export type SteelPipeProductType =
   | "galvanized_pipe"
   | "galvanized_sheet_pipe"
   | "black_steel_pipe";
+
+export type SquareTubeProductType =
+  | "galvanized_square_rectangular_tube"
+  | "pre_galvanized_square_rectangular_tube";
 
 export type QuantityUnit = "支" | "件";
 
@@ -38,7 +43,7 @@ export type SteelPipeRow = {
 
 export type SquareTubeRow = {
   id: string;
-  productType: "galvanized_square_rectangular_tube";
+  productType: SquareTubeProductType;
   dimensionMode: DimensionMode;
   specId: string;
   thicknessId: string;
@@ -53,8 +58,12 @@ export type SquareTubeRow = {
 export type AngleSteelRow = {
   id: string;
   productType: "angle_steel";
+  dimensionMode: DimensionMode;
   specId: string;
   thicknessId: string;
+  customLegAMm?: number;
+  customLegBMm?: number;
+  customThicknessMm?: number;
   lengthM: number;
   quantity: number;
   quantityUnit: "支";

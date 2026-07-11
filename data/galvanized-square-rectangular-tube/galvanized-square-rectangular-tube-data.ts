@@ -425,11 +425,162 @@ export const galvanizedSquareRectangularTubePart3 = {
   ],
 } as const satisfies Record<string, readonly (readonly [number, number])[]>;
 
-const galvanizedSquareRectangularTubeRawData = {
+export const galvanizedSquareRectangularTubeAdditions = {
+  "20x20": [[1.7, 5.88]],
+
+  "20x40": [
+    [1.0, 5.3],
+    [1.1, 5.85],
+    [1.2, 6.5],
+    [1.3, 6.76],
+    [1.7, 8.8],
+  ],
+
+  "25x25": [
+    [1.7, 7.4],
+    [3.0, 12.7],
+  ],
+
+  "25x50": [[1.7, 11.3]],
+
+  "30x30": [
+    [1.0, 5.33],
+    [1.1, 5.9],
+    [1.2, 6.5],
+    [1.3, 6.76],
+    [1.7, 8.9],
+  ],
+
+  "30x50": [
+    [1.0, 6.99],
+    [1.1, 7.72],
+    [1.2, 8.44],
+    [1.3, 8.75],
+    [1.7, 12.2],
+  ],
+
+  "38x58": [
+    [1.0, 8.4],
+    [1.1, 9.41],
+    [1.2, 9.62],
+    [1.3, 10.67],
+    [1.5, 12.3],
+    [1.7, 13.9],
+    [2.0, 16.5],
+    [2.5, 20.4],
+    [2.75, 22.3],
+    [3.0, 24.2],
+  ],
+
+  "40x40": [
+    [1.0, 7.44],
+    [1.1, 7.73],
+    [1.2, 8.52],
+    [1.3, 8.89],
+    [1.4, 9.8],
+    [1.7, 12.0],
+  ],
+
+  "40x60": [
+    [1.0, 9.02],
+    [1.1, 10.1],
+    [1.7, 15.1],
+  ],
+
+  "40x80": [
+    [1.0, 11.03],
+    [1.1, 11.77],
+    [1.2, 13.0],
+    [1.3, 13.48],
+    [1.7, 18.0],
+  ],
+
+  "45x95": [
+    [1.5, 18.25],
+    [1.7, 20.83],
+    [2.0, 24.11],
+  ],
+
+  "50x50": [[1.7, 15.0]],
+
+  "50x70": [[4.5, 47.0]],
+
+  "50x100": [
+    [1.7, 22.5],
+    [5.5, 73.0],
+  ],
+
+  "50x150": [
+    [3.0, 55.9],
+    [3.5, 64.9],
+    [3.75, 69.4],
+    [4.5, 82.6],
+    [4.75, 86.9],
+  ],
+
+  "60x60": [
+    [1.7, 18.0],
+    [5.5, 57.0],
+    [5.75, 59.5],
+  ],
+
+  "60x80": [
+    [1.5, 18.3],
+    [1.7, 20.8],
+  ],
+
+  "60x120": [
+    [1.5, 24.11],
+    [1.7, 27.8],
+  ],
+
+  "80x80": [[1.7, 23.9]],
+
+  "80x120": [[3.75, 68.3]],
+
+  "100x100": [[1.7, 30.5]],
+} as const satisfies Record<string, readonly (readonly [number, number])[]>;
+
+const galvanizedSquareRectangularTubeBaseRawData = {
   ...galvanizedSquareRectangularTubePart1,
   ...galvanizedSquareRectangularTubePart2,
   ...galvanizedSquareRectangularTubePart3,
 } as const satisfies Record<string, readonly (readonly [number, number])[]>;
+
+function mergeMissingThicknessOptions(
+  baseData: Record<string, readonly (readonly [number, number])[]>,
+  additions: Record<string, readonly (readonly [number, number])[]>,
+) {
+  const merged: Record<string, [number, number][]> = {};
+
+  Object.entries(baseData).forEach(([size, options]) => {
+    merged[size] = options.map(([thicknessMm, referenceWeightKgPerPiece]) => [
+      thicknessMm,
+      referenceWeightKgPerPiece,
+    ]);
+  });
+
+  Object.entries(additions).forEach(([size, options]) => {
+    const existingOptions = merged[size] ?? [];
+    const existingThicknesses = new Set(existingOptions.map(([thicknessMm]) => thicknessMm));
+
+    options.forEach(([thicknessMm, referenceWeightKgPerPiece]) => {
+      if (!existingThicknesses.has(thicknessMm)) {
+        existingOptions.push([thicknessMm, referenceWeightKgPerPiece]);
+        existingThicknesses.add(thicknessMm);
+      }
+    });
+
+    merged[size] = existingOptions.sort(([thicknessA], [thicknessB]) => thicknessA - thicknessB);
+  });
+
+  return merged;
+}
+
+const galvanizedSquareRectangularTubeRawData = mergeMissingThicknessOptions(
+  galvanizedSquareRectangularTubeBaseRawData,
+  galvanizedSquareRectangularTubeAdditions,
+);
 
 export const galvanizedSquareRectangularTubeData: GalvanizedSquareRectangularTubeSpec[] =
   Object.entries(galvanizedSquareRectangularTubeRawData).map(([size, options]) => {

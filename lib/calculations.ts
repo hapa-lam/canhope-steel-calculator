@@ -1,18 +1,19 @@
 import {
-  angleSteelSpecs,
   channelSteelSpecs,
   groovedFittingOptions,
-  type StandardSpec,
 } from "@/data/demo/steel-specs";
+import { findAngleSteelReference } from "@/data/angle-steel/angle-steel-data";
 import { findGalvanizedPipeReference } from "@/data/galvanized-pipe/galvanized-pipe-data";
 import { findGalvanizedSheetPipeReference } from "@/data/galvanized-sheet-pipe/galvanized-sheet-pipe-data";
 import { findBlackSteelPipeReference } from "@/data/black-steel-pipe/black-steel-pipe-data";
 import { findGalvanizedSquareRectangularTubeReference } from "@/data/galvanized-square-rectangular-tube/galvanized-square-rectangular-tube-data";
+import { findPreGalvanizedSquareRectangularTubeReference } from "@/data/pre-galvanized-square-rectangular-tube/pre-galvanized-square-rectangular-tube-data";
 import type {
   MaterialList,
   MaterialModule,
   MaterialRow,
   RowCalculation,
+  SquareTubeProductType,
   SteelPipeProductType,
   SummaryResult,
 } from "@/types/materials";
@@ -21,22 +22,18 @@ export const CONTAINER_40HQ_TON = 27.5;
 const STEEL_DENSITY_FACTOR = 0.00785;
 const ROUND_CARBON_STEEL_PIPE_FACTOR = 0.02466;
 
-function findWeightFromSpec(
-  specs: StandardSpec[],
-  specId: string,
-  thicknessId: string,
-) {
-  return specs
-    .find((spec) => spec.id === specId)
-    ?.thicknesses.find((thickness) => thickness.id === thicknessId)
-    ?.weightKgPerM;
-}
-
 function isSteelPipeProduct(type: string): type is SteelPipeProductType {
   return (
     type === "galvanized_pipe" ||
     type === "galvanized_sheet_pipe" ||
     type === "black_steel_pipe"
+  );
+}
+
+function isSquareTubeProduct(type: string): type is SquareTubeProductType {
+  return (
+    type === "galvanized_square_rectangular_tube" ||
+    type === "pre_galvanized_square_rectangular_tube"
   );
 }
 
@@ -97,7 +94,7 @@ export function calculateRow(row: MaterialRow): RowCalculation {
     };
   }
 
-  if (row.productType === "galvanized_square_rectangular_tube" && row.dimensionMode === "custom") {
+  if (isSquareTubeProduct(row.productType) && row.dimensionMode === "custom") {
     const width = row.customWidthMm ?? 0;
     const height = row.customHeightMm ?? 0;
     const thickness = row.customThicknessMm ?? 0;
@@ -114,6 +111,39 @@ export function calculateRow(row: MaterialRow): RowCalculation {
 
     const sectionAreaMm2 = width * height - (width - 2 * thickness) * (height - 2 * thickness);
     const unitWeightKg = sectionAreaMm2 * STEEL_DENSITY_FACTOR;
+    const pieceWeightKg = unitWeightKg * row.lengthM;
+
+    return {
+      rowId: row.id,
+      hasWeight: true,
+      unitWeightKg,
+      unitWeightLabel: "kg/m",
+      pieceWeightKg,
+      totalWeightKg: pieceWeightKg * row.quantity,
+    };
+  }
+
+  if (row.productType === "angle_steel" && row.dimensionMode === "custom") {
+    const legA = row.customLegAMm ?? 0;
+    const legB = row.customLegBMm ?? 0;
+    const thickness = row.customThicknessMm ?? 0;
+    const hasValidDimensions =
+      legA > 0 &&
+      legB > 0 &&
+      thickness > 0 &&
+      row.lengthM > 0 &&
+      thickness < legA &&
+      thickness < legB;
+
+    if (!hasValidDimensions) {
+      return {
+        rowId: row.id,
+        hasWeight: false,
+        unitWeightLabel: "kg/m",
+      };
+    }
+
+    const unitWeightKg = calculateAngleSteelKgPerMeter(legA, legB, thickness);
     const pieceWeightKg = unitWeightKg * row.lengthM;
 
     return {
@@ -211,8 +241,11 @@ export function calculateRow(row: MaterialRow): RowCalculation {
     };
   }
 
-  if (row.productType === "galvanized_square_rectangular_tube") {
-    const reference = findGalvanizedSquareRectangularTubeReference(row.specId, row.thicknessId);
+  if (isSquareTubeProduct(row.productType)) {
+    const reference =
+      row.productType === "galvanized_square_rectangular_tube"
+        ? findGalvanizedSquareRectangularTubeReference(row.specId, row.thicknessId)
+        : findPreGalvanizedSquareRectangularTubeReference(row.specId, row.thicknessId);
 
     if (!reference) {
       return {
@@ -236,17 +269,35 @@ export function calculateRow(row: MaterialRow): RowCalculation {
     };
   }
 
-  const specs =
-    row.productType === "angle_steel"
-          ? angleSteelSpecs
-          : null;
+  if (row.productType === "angle_steel") {
+    const reference = findAngleSteelReference(row.specId, row.thicknessId);
+
+    if (!reference) {
+      return {
+        rowId: row.id,
+        hasWeight: false,
+        unitWeightLabel: "kg/m",
+      };
+    }
+
+    const unitWeightKg =
+      reference.thickness.referenceWeightKgPerPiece / reference.spec.referenceLengthM;
+    const pieceWeightKg = reference.thickness.referenceWeightKgPerPiece;
+
+    return {
+      rowId: row.id,
+      hasWeight: true,
+      unitWeightKg,
+      unitWeightLabel: "kg/m",
+      pieceWeightKg,
+      totalWeightKg: pieceWeightKg * row.quantity,
+    };
+  }
 
   const unitWeightKg =
     row.productType === "channel_steel"
       ? channelSteelSpecs.find((spec) => spec.id === row.specId)?.weightKgPerM
-      : specs
-        ? findWeightFromSpec(specs, row.specId, row.thicknessId)
-        : undefined;
+      : undefined;
 
   if (!unitWeightKg) {
     return {
@@ -270,6 +321,14 @@ export function calculateRow(row: MaterialRow): RowCalculation {
 
 export function calculateRoundSteelPipeKgPerMeter(outerDiameterMm: number, thicknessMm: number) {
   return ROUND_CARBON_STEEL_PIPE_FACTOR * thicknessMm * (outerDiameterMm - thicknessMm);
+}
+
+export function calculateAngleSteelKgPerMeter(
+  legAMm: number,
+  legBMm: number,
+  thicknessMm: number,
+) {
+  return thicknessMm * (legAMm + legBMm - thicknessMm) * STEEL_DENSITY_FACTOR;
 }
 
 export function calculateModuleSubtotal(module: MaterialModule) {

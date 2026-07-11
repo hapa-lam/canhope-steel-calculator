@@ -16,6 +16,18 @@
 
 ## 本地运行
 
+默认开发命令：
+
+```bash
+pnpm run dev
+```
+
+默认测试地址：
+
+```text
+http://localhost:3000
+```
+
 ```bash
 pnpm install
 pnpm run dev
@@ -24,6 +36,11 @@ pnpm run lint
 ```
 
 本项目使用 Next.js App Router、TypeScript、Tailwind CSS 和 pnpm。
+
+## 项目文档
+
+- `AGENTS.md` 用于 Codex/AI 开发协作规则。
+- `CHANGELOG.md` 用于正式版本变化记录。
 
 ## 交付约定
 

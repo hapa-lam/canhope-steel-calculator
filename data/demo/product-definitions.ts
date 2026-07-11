@@ -26,6 +26,12 @@ export const productDefinitions: ProductDefinition[] = [
     category: "钢管类",
   },
   {
+    type: "pre_galvanized_square_rectangular_tube",
+    name: "镀锌板方矩管",
+    englishName: "Pre-Galvanized Square / Rectangular Tube",
+    category: "钢管类",
+  },
+  {
     type: "angle_steel",
     name: "角钢",
     englishName: "Angle Steel",

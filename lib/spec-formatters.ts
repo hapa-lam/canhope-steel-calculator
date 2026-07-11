@@ -2,6 +2,8 @@ import type { GalvanizedPipeSpec } from "@/data/galvanized-pipe/galvanized-pipe-
 import type { GalvanizedSheetPipeSpec } from "@/data/galvanized-sheet-pipe/galvanized-sheet-pipe-data";
 import type { BlackSteelPipeSpec } from "@/data/black-steel-pipe/black-steel-pipe-data";
 import type { GalvanizedSquareRectangularTubeSpec } from "@/data/galvanized-square-rectangular-tube/galvanized-square-rectangular-tube-data";
+import type { PreGalvanizedSquareRectangularTubeSpec } from "@/data/pre-galvanized-square-rectangular-tube/pre-galvanized-square-rectangular-tube-data";
+import type { AngleSteelSpecification } from "@/data/angle-steel/angle-steel-data";
 import type { Locale } from "@/i18n";
 
 export function formatThicknessValue(thicknessMm: number, locale: Locale) {
@@ -54,7 +56,11 @@ export function formatBlackSteelPipeSpec(spec: BlackSteelPipeSpec, locale: Local
 }
 
 export function formatGalvanizedSquareRectangularTubeSpec(
-  spec: GalvanizedSquareRectangularTubeSpec,
+  spec: GalvanizedSquareRectangularTubeSpec | PreGalvanizedSquareRectangularTubeSpec,
 ) {
   return `${spec.widthMm} × ${spec.heightMm} mm`;
+}
+
+export function formatAngleSteelSpec(spec: AngleSteelSpecification) {
+  return `${spec.legAMm} × ${spec.legBMm} mm`;
 }

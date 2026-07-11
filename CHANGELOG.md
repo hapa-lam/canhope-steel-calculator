@@ -1,5 +1,41 @@
 # Changelog
 
+## v0.6.0 — Angle Steel
+
+Version v0.6.0
+
+### Added
+
+- Added Angle Steel.
+- Added 12 dimensions and 58 thickness/weight combinations.
+- Added equal and unequal angle support.
+- Added standard/custom calculation, bilingual UI, material list and RFQ support.
+
+## v0.5.0 — Pre-Galvanized Square / Rectangular Tube
+
+Version v0.5.0
+
+### Added
+
+- Added Pre-Galvanized Square / Rectangular Tube.
+- Added 32 standard dimensions and 372 thickness/weight combinations.
+- Added standard 6 m reference-weight calculations for the new product.
+- Added custom-size theoretical calculations.
+- Added Chinese and English product support.
+- Added material-list, 40HQ estimate, RFQ and localStorage support.
+- Added pieces-per-bundle metadata for future use without exposing it in the current UI.
+- Added formal Codex and user testing responsibility rules.
+
+### Changed
+
+- Expanded Hot-Dip Galvanized Square / Rectangular Tube specifications.
+- Manual UI interaction acceptance is now performed by the user by default.
+- Codex remains responsible for lint, build, type, data and programmatic validation.
+
+### Fixed
+
+- Fixed material-list localStorage restoration hydration mismatch.
+
 ## v0.4.0 — Bilingual Steel Calculator & Product Data Expansion
 
 Version v0.4.0
