@@ -50,6 +50,8 @@ export const zh = {
     modelOrAngle: "型号或角度",
     thickness: "壁厚",
     thicknessShort: "厚度",
+    theoreticalWeight: "理论重量",
+    piecesPerBundle: "每扎支数",
     length: "长度",
     quantity: "数量",
     unitWeight: "单位重量",
@@ -68,8 +70,10 @@ export const zh = {
     unequalAngle: "不等边角钢",
     selectSpec: "选择规格",
     selectThickness: "选择厚度",
+    selectTheoreticalWeight: "选择理论重量",
     specDataPending: "规格数据待导入",
     thicknessDataPending: "厚度数据待导入",
+    referenceWeightDataPending: "理论重量数据待导入",
   },
   actions: {
     addSpec: "增加规格",
@@ -85,6 +89,7 @@ export const zh = {
     customSpec: "自定义规格",
     locked: "锁定",
     fixedLengthTip: "现货常规长度为6米定尺。如需其他长度，请使用自定义尺寸。",
+    fixedLengthOnlyTip: "标准长度固定为6米定尺。",
   },
   summary: {
     productCount: "品种数",

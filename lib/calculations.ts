@@ -1,8 +1,6 @@
-import {
-  channelSteelSpecs,
-  groovedFittingOptions,
-} from "@/data/demo/steel-specs";
+import { groovedFittingOptions } from "@/data/demo/steel-specs";
 import { findAngleSteelReference } from "@/data/angle-steel/angle-steel-data";
+import { findChannelSteelReference } from "@/data/channel-steel/channel-steel-data";
 import { findGalvanizedPipeReference } from "@/data/galvanized-pipe/galvanized-pipe-data";
 import { findGalvanizedSheetPipeReference } from "@/data/galvanized-sheet-pipe/galvanized-sheet-pipe-data";
 import { findBlackSteelPipeReference } from "@/data/black-steel-pipe/black-steel-pipe-data";
@@ -294,28 +292,35 @@ export function calculateRow(row: MaterialRow): RowCalculation {
     };
   }
 
-  const unitWeightKg =
-    row.productType === "channel_steel"
-      ? channelSteelSpecs.find((spec) => spec.id === row.specId)?.weightKgPerM
-      : undefined;
+  if (row.productType === "channel_steel") {
+    const reference = findChannelSteelReference(row.specId, row.referenceWeightId);
 
-  if (!unitWeightKg) {
+    if (!reference) {
+      return {
+        rowId: row.id,
+        hasWeight: false,
+        unitWeightLabel: "kg/m",
+      };
+    }
+
+    const unitWeightKg =
+      reference.weightOption.referenceWeightKgPerPiece / reference.spec.referenceLengthM;
+    const pieceWeightKg = reference.weightOption.referenceWeightKgPerPiece;
+
     return {
       rowId: row.id,
-      hasWeight: false,
+      hasWeight: true,
+      unitWeightKg,
       unitWeightLabel: "kg/m",
+      pieceWeightKg,
+      totalWeightKg: pieceWeightKg * row.quantity,
     };
   }
 
-  const pieceWeightKg = unitWeightKg * row.lengthM;
-
   return {
     rowId: row.id,
-    hasWeight: true,
-    unitWeightKg,
+    hasWeight: false,
     unitWeightLabel: "kg/m",
-    pieceWeightKg,
-    totalWeightKg: pieceWeightKg * row.quantity,
   };
 }
 

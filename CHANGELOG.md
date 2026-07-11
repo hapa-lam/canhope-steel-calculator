@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.7.0
+
+### Added
+- Added Channel Steel with 9 sizes and 51 theoretical weight options.
+- Added selectable theoretical weight and pieces-per-bundle display.
+- Added bilingual UI, material list, RFQ, 40HQ and localStorage support.
+
+### Changed
+- Extended the standard option framework to support wall-thickness or reference-weight selection.
+
 ## v0.6.0 — Angle Steel
 
 Version v0.6.0

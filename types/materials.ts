@@ -73,6 +73,7 @@ export type ChannelSteelRow = {
   id: string;
   productType: "channel_steel";
   specId: string;
+  referenceWeightId: string;
   lengthM: number;
   quantity: number;
   quantityUnit: "支";

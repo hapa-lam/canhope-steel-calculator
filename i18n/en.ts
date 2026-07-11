@@ -54,6 +54,8 @@ export const en: typeof zh = {
     modelOrAngle: "Model / Angle",
     thickness: "Wall Thickness",
     thicknessShort: "Thickness",
+    theoreticalWeight: "Theoretical Weight",
+    piecesPerBundle: "Pieces per Bundle",
     length: "Length",
     quantity: "Quantity",
     unitWeight: "Unit Weight",
@@ -72,8 +74,10 @@ export const en: typeof zh = {
     unequalAngle: "Unequal Angle",
     selectSpec: "Select Size",
     selectThickness: "Select Thickness",
+    selectTheoreticalWeight: "Select Theoretical Weight",
     specDataPending: "Size data pending",
     thicknessDataPending: "Thickness data pending",
+    referenceWeightDataPending: "Reference weight data pending",
   },
   actions: {
     addSpec: "Add Specification",
@@ -89,6 +93,7 @@ export const en: typeof zh = {
     customSpec: "Custom Size",
     locked: "Locked",
     fixedLengthTip: "Standard stock length is fixed at 6 meters. For other lengths, please use Custom Size.",
+    fixedLengthOnlyTip: "Standard length is fixed at 6 meters.",
   },
   summary: {
     productCount: "Product Types",

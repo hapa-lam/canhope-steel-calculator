@@ -2,14 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { productDefinitions } from "@/data/demo/product-definitions";
-import {
-  channelSteelSpecs,
-  groovedFittingOptions,
-} from "@/data/demo/steel-specs";
+import { groovedFittingOptions } from "@/data/demo/steel-specs";
 import {
   angleSteelSpecifications,
   getAngleSteelThicknessId,
 } from "@/data/angle-steel/angle-steel-data";
+import { channelSteelData } from "@/data/channel-steel/channel-steel-data";
 import {
   galvanizedPipeData,
   getGalvanizedPipeThicknessId,
@@ -98,6 +96,10 @@ function isSquareTubeProduct(type: string): type is SquareTubeProductType {
   return squareTubeProductTypes.includes(type as SquareTubeProductType);
 }
 
+function isCustomSizeProduct(type: ProductType): type is CustomSizeProductType {
+  return isSteelPipeProduct(type) || isSquareTubeProduct(type) || type === "angle_steel";
+}
+
 function getSquareTubeData(productType: SquareTubeProductType) {
   return productType === "galvanized_square_rectangular_tube"
     ? galvanizedSquareRectangularTubeData
@@ -128,6 +130,28 @@ function getDefaultAngleSteelSelection() {
     specId: firstSpec?.id ?? "",
     thicknessId: firstThickness ? getAngleSteelThicknessId(firstThickness.thicknessMm) : "",
   };
+}
+
+function getDefaultChannelSteelSelection() {
+  const firstSpec = channelSteelData[0];
+  const firstWeight = firstSpec?.weightOptions[0];
+
+  return {
+    specId: firstSpec?.id ?? "",
+    referenceWeightId: firstWeight?.id ?? "",
+  };
+}
+
+type StandardOptionMode = "thickness" | "referenceWeight";
+
+function getStandardOptionMode(productType: ProductType): StandardOptionMode {
+  return productType === "channel_steel" ? "referenceWeight" : "thickness";
+}
+
+function getStandardOptionLabel(productType: ProductType, m: Messages) {
+  return getStandardOptionMode(productType) === "referenceWeight"
+    ? m.fields.theoreticalWeight
+    : m.fields.thickness;
 }
 
 function createId(prefix: string) {
@@ -185,10 +209,13 @@ function createEmptyRow(productType: ProductType): MaterialRow {
   }
 
   if (productType === "channel_steel") {
+    const defaultSelection = getDefaultChannelSteelSelection();
+
     return {
       id,
       productType,
-      specId: "",
+      specId: defaultSelection.specId,
+      referenceWeightId: defaultSelection.referenceWeightId,
       lengthM: 6,
       quantity: 0,
       quantityUnit: "支",
@@ -346,6 +373,48 @@ function getAngleSteelSelectedThicknessLabel(specId: string, thicknessId: string
   return thickness ? formatThicknessValue(thickness.thicknessMm, locale) : "";
 }
 
+function formatChannelSteelSpec(nominalSize: string) {
+  return `${nominalSize}#`;
+}
+
+function formatChannelSteelReferenceWeight(weightKg: number, locale: Locale) {
+  return locale === "zh"
+    ? `${formatNumber(weightKg, 2, locale)} kg/支`
+    : `${formatNumber(weightKg, 2, locale)} kg/piece`;
+}
+
+function formatChannelSteelPiecesPerBundle(piecesPerBundle: number, locale: Locale) {
+  return locale === "zh" ? `每扎${piecesPerBundle}支` : `${piecesPerBundle} pieces/bundle`;
+}
+
+function getChannelSteelSelectedSpecLabel(specId: string) {
+  const spec = channelSteelData.find((item) => item.id === specId);
+  return spec ? formatChannelSteelSpec(spec.nominalSize) : "";
+}
+
+function getChannelSteelSelectedWeightOption(specId: string, referenceWeightId: string) {
+  const spec = channelSteelData.find((item) => item.id === specId);
+  return spec?.weightOptions.find((item) => item.id === referenceWeightId);
+}
+
+function getChannelSteelSelectedReferenceWeightLabel(
+  specId: string,
+  referenceWeightId: string,
+  locale: Locale,
+) {
+  const option = getChannelSteelSelectedWeightOption(specId, referenceWeightId);
+  return option ? formatChannelSteelReferenceWeight(option.referenceWeightKgPerPiece, locale) : "";
+}
+
+function getChannelSteelSelectedBundleLabel(
+  specId: string,
+  referenceWeightId: string,
+  locale: Locale,
+) {
+  const option = getChannelSteelSelectedWeightOption(specId, referenceWeightId);
+  return option ? formatChannelSteelPiecesPerBundle(option.piecesPerBundle, locale) : "";
+}
+
 function getStandardSteelPipeLengthM(row: MaterialRow) {
   if (row.productType === "black_steel_pipe" && row.dimensionMode !== "custom") {
     const spec = blackSteelPipeData.find((item) => item.id === row.specId);
@@ -365,8 +434,9 @@ function isFixedLengthStandardSteelPipeRow(row: MaterialRow) {
       row.productType === "galvanized_sheet_pipe" ||
       row.productType === "black_steel_pipe" ||
       isSquareTubeProduct(row.productType) ||
-      row.productType === "angle_steel") &&
-    row.dimensionMode !== "custom"
+      row.productType === "angle_steel" ||
+      row.productType === "channel_steel") &&
+    ("dimensionMode" in row ? row.dimensionMode !== "custom" : true)
   );
 }
 
@@ -433,7 +503,12 @@ function getRowDescription(row: MaterialRow, locale: Locale, m: Messages) {
   }
 
   if (row.productType === "channel_steel") {
-    return channelSteelSpecs.find((spec) => spec.id === row.specId)?.label ?? "";
+    return [
+      getChannelSteelSelectedSpecLabel(row.specId),
+      getChannelSteelSelectedReferenceWeightLabel(row.specId, row.referenceWeightId, locale),
+    ]
+      .filter(Boolean)
+      .join(" / ");
   }
 
   const option = groovedFittingOptions.find(
@@ -472,6 +547,25 @@ function normalizeStoredMaterialList(value: MaterialList): MaterialList {
             : (row.productType as string) === "square_tube"
               ? ({ ...row, productType: "galvanized_square_rectangular_tube" } as MaterialRow)
             : row;
+
+        if (normalizedRow.productType === "channel_steel") {
+          const firstSpec = channelSteelData[0];
+          const matchingSpec =
+            channelSteelData.find((spec) => spec.id === normalizedRow.specId) ?? firstSpec;
+          const referenceWeightId =
+            "referenceWeightId" in normalizedRow ? normalizedRow.referenceWeightId : "";
+          const matchingWeight =
+            matchingSpec?.weightOptions.find((option) => option.id === referenceWeightId) ??
+            matchingSpec?.weightOptions[0];
+
+          return {
+            ...normalizedRow,
+            specId: matchingSpec?.id ?? "",
+            referenceWeightId: matchingWeight?.id ?? "",
+            lengthM: 6,
+            quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
+          };
+        }
 
         if (
           isSteelPipeProduct(normalizedRow.productType) ||
@@ -633,7 +727,8 @@ export default function Home() {
           lines.push(`${m.fields.quantity}: ${formatQuantity(row.quantity, row.quantityUnit, locale)}`);
           if (
             (row.productType === "pre_galvanized_square_rectangular_tube" ||
-              row.productType === "angle_steel") &&
+              row.productType === "angle_steel" ||
+              row.productType === "channel_steel") &&
             calc.hasWeight
           ) {
             lines.push(`${m.fields.pieceWeight}: ${formatKg(calc.pieceWeightKg, locale, m.notices.weightPending)}`);
@@ -683,6 +778,8 @@ export default function Home() {
           row.productType === "pre_galvanized_square_rectangular_tube" && calc.hasWeight
             ? `，${m.fields.pieceWeight} ${formatKg(calc.pieceWeightKg, locale, m.notices.weightPending)}`
             : row.productType === "angle_steel" && calc.hasWeight
+            ? `，${m.fields.pieceWeight} ${formatKg(calc.pieceWeightKg, locale, m.notices.weightPending)}`
+            : row.productType === "channel_steel" && calc.hasWeight
             ? `，${m.fields.pieceWeight} ${formatKg(calc.pieceWeightKg, locale, m.notices.weightPending)}`
             : "";
         lines.push(
@@ -1104,11 +1201,21 @@ function ProductTableHead({ productType, m }: { productType: ProductType; m: Mes
   const commonEnd = [m.fields.quantity, m.fields.unitWeight, m.fields.pieceWeightFull, m.fields.totalWeight, m.fields.action];
   const columns =
     isSteelPipeProduct(productType) || isSquareTubeProduct(productType)
-      ? [m.fields.spec, m.fields.thickness, m.fields.length, ...commonEnd]
+      ? [m.fields.spec, getStandardOptionLabel(productType, m), m.fields.length, ...commonEnd]
       : productType === "angle_steel"
-        ? [m.fields.spec, m.fields.thickness, m.fields.length, ...commonEnd]
+        ? [m.fields.spec, getStandardOptionLabel(productType, m), m.fields.length, ...commonEnd]
         : productType === "channel_steel"
-          ? [m.fields.specModel, m.fields.length, ...commonEnd]
+          ? [
+              m.fields.spec,
+              getStandardOptionLabel(productType, m),
+              m.fields.length,
+              m.fields.quantity,
+              m.fields.piecesPerBundle,
+              m.fields.unitWeight,
+              m.fields.pieceWeightFull,
+              m.fields.totalWeight,
+              m.fields.action,
+            ]
           : [m.fields.fittingType, m.fields.size, m.fields.modelOrAngle, ...commonEnd];
 
   return (
@@ -1287,17 +1394,32 @@ function ProductRow({
     return (
       <tr>
         <td>
-          <select className="field" value={row.specId} onChange={(event) => onUpdateRow(row.id, { specId: event.target.value })}>
-            <option value="">{m.fields.selectSpec}</option>
-            {channelSteelSpecs.map((spec) => (
-              <option key={spec.id} value={spec.id}>
-                {spec.label}
-              </option>
-            ))}
-          </select>
+          <ChannelSteelSpecSelect
+            value={row.specId}
+            onChange={(specId) => {
+              const nextSpec = channelSteelData.find((spec) => spec.id === specId);
+              const nextWeight = nextSpec?.weightOptions[0];
+              onUpdateRow(row.id, {
+                specId,
+                referenceWeightId: nextWeight?.id ?? "",
+                lengthM: 6,
+              });
+            }}
+            m={m}
+          />
+        </td>
+        <td>
+          <ChannelSteelReferenceWeightSelect
+            specId={row.specId}
+            value={row.referenceWeightId}
+            onChange={(referenceWeightId) => onUpdateRow(row.id, { referenceWeightId })}
+            locale={locale}
+            m={m}
+          />
         </td>
         <LengthInput row={row} onUpdateRow={onUpdateRow} locale={locale} m={m} />
         <QuantityInput row={row} onUpdateRow={onUpdateRow} locale={locale} />
+        <td>{getChannelSteelSelectedBundleLabel(row.specId, row.referenceWeightId, locale) || <MissingWeight m={m} />}</td>
         {actionCells}
       </tr>
     );
@@ -1568,16 +1690,39 @@ function ProductRowFields({
       <>
         <label className="mobile-field-label">
           {m.fields.spec}
-          <select className="field" value={row.specId} onChange={(event) => onUpdateRow(row.id, { specId: event.target.value })}>
-            <option value="">{m.fields.selectSpec}</option>
-            {channelSteelSpecs.map((spec) => (
-              <option key={spec.id} value={spec.id}>
-                {spec.label}
-              </option>
-            ))}
-          </select>
+          <ChannelSteelSpecSelect
+            value={row.specId}
+            onChange={(specId) => {
+              const nextSpec = channelSteelData.find((spec) => spec.id === specId);
+              const nextWeight = nextSpec?.weightOptions[0];
+              onUpdateRow(row.id, {
+                specId,
+                referenceWeightId: nextWeight?.id ?? "",
+                lengthM: 6,
+              });
+            }}
+            m={m}
+          />
         </label>
-        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        <label className="mobile-field-label">
+          {m.fields.theoreticalWeight}
+          <ChannelSteelReferenceWeightSelect
+            specId={row.specId}
+            value={row.referenceWeightId}
+            onChange={(referenceWeightId) => onUpdateRow(row.id, { referenceWeightId })}
+            locale={locale}
+            m={m}
+          />
+        </label>
+        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} locale={locale} m={m} />
+        <label className="mobile-field-label">
+          {m.fields.piecesPerBundle}
+          <input
+            className="field"
+            readOnly
+            value={getChannelSteelSelectedBundleLabel(row.specId, row.referenceWeightId, locale)}
+          />
+        </label>
       </>
     );
   }
@@ -1608,7 +1753,7 @@ function MobileLengthQuantity({
 }: {
   row: Exclude<MaterialRow, { productType: "grooved_fitting" }>;
   onUpdateRow: (rowId: string, updates: Record<string, string | number>) => void;
-  onAddCustomRow: (productType: CustomSizeProductType) => void;
+  onAddCustomRow?: (productType: CustomSizeProductType) => void;
   locale: Locale;
   m: Messages;
 }) {
@@ -2001,6 +2146,55 @@ function AngleSteelThicknessSelect({
   );
 }
 
+function ChannelSteelSpecSelect({
+  value,
+  onChange,
+  m,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  m: Messages;
+}) {
+  return (
+    <select className="field" value={value} onChange={(event) => onChange(event.target.value)}>
+      <option value="">{m.fields.selectSpec}</option>
+      {channelSteelData.map((spec) => (
+        <option key={spec.id} value={spec.id}>
+          {formatChannelSteelSpec(spec.nominalSize)}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function ChannelSteelReferenceWeightSelect({
+  specId,
+  value,
+  onChange,
+  locale,
+  m,
+}: {
+  specId: string;
+  value: string;
+  onChange: (value: string) => void;
+  locale: Locale;
+  m: Messages;
+}) {
+  const weightOptions =
+    channelSteelData.find((spec) => spec.id === specId)?.weightOptions ?? [];
+
+  return (
+    <select className="field" value={value} onChange={(event) => onChange(event.target.value)} disabled={!specId}>
+      <option value="">{weightOptions.length > 0 ? m.fields.selectTheoreticalWeight : m.fields.referenceWeightDataPending}</option>
+      {weightOptions.map((option) => (
+        <option key={option.id} value={option.id}>
+          {formatChannelSteelReferenceWeight(option.referenceWeightKgPerPiece, locale)}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 function LengthInput({
   row,
   onUpdateRow,
@@ -2018,7 +2212,7 @@ function LengthInput({
 
   return (
     <td>
-      {locked && onAddCustomRow ? (
+      {locked ? (
         <LockedLengthField
           productType={row.productType}
           onAddCustomRow={onAddCustomRow}
@@ -2049,24 +2243,29 @@ function LockedLengthField({
   lengthM,
   compact = false,
 }: {
-  productType: CustomSizeProductType;
-  onAddCustomRow: (productType: CustomSizeProductType) => void;
+  productType: ProductType;
+  onAddCustomRow?: (productType: CustomSizeProductType) => void;
   locale: Locale;
   m: Messages;
   lengthM: number;
   compact?: boolean;
 }) {
+  const canUseCustomSize = onAddCustomRow && isCustomSizeProduct(productType);
+  const tip = canUseCustomSize ? m.customSize.fixedLengthTip : m.customSize.fixedLengthOnlyTip;
+
   return (
     <div className={`locked-length-field ${compact ? "is-compact" : ""}`}>
-      <input className="field locked-length-input" readOnly type="text" value={formatLength(lengthM, locale)} aria-label={m.customSize.fixedLengthTip} />
+      <input className="field locked-length-input" readOnly type="text" value={formatLength(lengthM, locale)} aria-label={tip} />
       <span className="locked-length-badge" aria-hidden="true">
         {m.customSize.locked}
       </span>
       <div className="locked-length-tip" role="note">
-        <p>{m.customSize.fixedLengthTip}</p>
-        <button type="button" onClick={() => onAddCustomRow(productType)}>
-          {m.customSize.useCustomSize}
-        </button>
+        <p>{tip}</p>
+        {canUseCustomSize ? (
+          <button type="button" onClick={() => onAddCustomRow(productType)}>
+            {m.customSize.useCustomSize}
+          </button>
+        ) : null}
       </div>
     </div>
   );
