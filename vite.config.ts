@@ -1,5 +1,8 @@
 import vinext from "vinext";
+import tailwindcss from "@tailwindcss/postcss";
+import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
+import { fileURLToPath } from "node:url";
 import hostingConfig from "./.openai/hosting.json";
 import { sites } from "./build/sites-vite-plugin";
 
@@ -10,6 +13,10 @@ const { d1, r2 } = hostingConfig;
 
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
+const isHostingerBuild = process.env.NITRO_PRESET === "node";
+const tailwindCssEntry = fileURLToPath(
+  new URL("./node_modules/tailwindcss/index.css", import.meta.url),
+);
 
 const localBindingConfig = {
   main: "./worker/index.ts",
@@ -41,19 +48,30 @@ export default defineConfig(async () => {
   process.env.MINIFLARE_REGISTRY_PATH ??= ".wrangler/registry";
 
   // Wrangler snapshots its log path while the Cloudflare plugin is imported.
-  const { cloudflare } = await import("@cloudflare/vite-plugin");
+  const cloudflarePlugin = isHostingerBuild
+    ? null
+    : await import("@cloudflare/vite-plugin").then(({ cloudflare }) =>
+        cloudflare({
+          viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
+          config: localBindingConfig,
+        }),
+      );
 
   return {
     server: isCodexSeatbeltSandbox
       ? { watch: { useFsEvents: false, usePolling: true } }
       : undefined,
+    css: isHostingerBuild
+      ? { postcss: { plugins: [tailwindcss()] } }
+      : undefined,
+    resolve: isHostingerBuild
+      ? { alias: { tailwindcss: tailwindCssEntry } }
+      : undefined,
     plugins: [
       vinext(),
+      nitro(),
       sites(),
-      cloudflare({
-        viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
-        config: localBindingConfig,
-      }),
-    ],
+      cloudflarePlugin,
+    ].filter((plugin) => plugin !== null),
   };
 });
