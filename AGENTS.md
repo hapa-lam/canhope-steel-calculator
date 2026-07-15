@@ -606,3 +606,193 @@ Manual UI acceptance: Pending user confirmation / Confirmed by user / Blocked pe
 Unrelated product data modified: Yes / No
 
 Do not claim browser testing was completed when the local server was not reachable.
+
+---
+
+## 21. Long-Term Product Direction
+
+The current project is evolving from a single Steel Weight Calculator into a Steel Tools Center.
+
+Primary goals:
+
+- SEO traffic
+- Brand exposure
+- Real user utility
+- RFQ inquiries for CanHope Steel
+
+This is not currently a paid SaaS project.
+
+Do not prioritize:
+
+- Login systems
+- Membership features
+- Paid subscriptions
+- User account systems
+- Complex admin backends
+
+All future features should directly support steel purchasing, weight calculation, product selection, container planning, RFQ preparation, or practical steel knowledge.
+
+Use "solutions" in English content where appropriate.
+
+Do not use "one-stop" in user-facing copy.
+
+---
+
+## 22. Existing Feature Protection
+
+Protect the following existing functions unless a task explicitly asks to change them:
+
+- Product selection
+- Size and thickness selection
+- Quantity input
+- Theoretical weight calculation
+- Total weight calculation
+- 40HQ estimate
+- Material list
+- RFQ generation
+- Confirmed product specification data
+
+Do not do the following without a clear user request:
+
+- Delete product data
+- Modify weight data
+- Modify formulas
+- Change existing calculation results
+- Change the existing operation flow
+- Rebuild the whole page
+- Automatically deploy to production
+
+Small feature changes must not casually redesign the full interface.
+
+---
+
+## 23. Business Data Rules
+
+Product data is business-critical data.
+
+- Do not guess missing specifications.
+- Do not silently use theoretical formulas to overwrite confirmed market weights.
+- `piecesPerBundle` is for display only.
+- `piecesPerBundle` must not participate in weight calculations.
+- `piecesPerBundle` must not imply that users must buy full bundles.
+- Uncertain data must be clearly marked as uncertain, not filled in by assumption.
+- Product-specific data rules override generic formulas.
+
+---
+
+## 24. Calculation Change Rules
+
+Calculation accuracy is more important than code simplification.
+
+40HQ results must always be described as estimates, not guaranteed loading plans.
+
+When modifying any calculation logic, the completion report must explain:
+
+- Original formula
+- New formula
+- Reason for the change
+- Example comparison
+- Products that may be affected
+
+---
+
+## 25. SEO Expansion Rules
+
+Future development should support independent SEO tool pages such as:
+
+- `/steel-weight-calculator/`
+- `/pipe-weight-calculator/`
+- `/galvanized-pipe-weight-calculator/`
+- `/square-tube-weight-calculator/`
+- `/rectangular-tube-weight-calculator/`
+- `/angle-steel-weight-calculator/`
+- `/channel-steel-weight-calculator/`
+- `/container-loading-calculator/`
+
+Each page must provide real, independent, useful content. Do not create pages that only swap titles and keywords.
+
+Avoid:
+
+- Keyword cannibalization between tool pages
+- Keyword cannibalization between tool pages and blog posts
+- Keyword cannibalization between tool pages and commercial product pages
+- Large numbers of low-quality, duplicate, or thin pages
+
+Each future SEO page should have a clear search intent, a distinct calculator or explanation, and a natural next step toward related CanHope Steel products or RFQ.
+
+---
+
+## 26. Internal Linking and Conversion Rules
+
+Target user path:
+
+Google Search or social media
+
+→ tool page
+
+→ user completes a calculation
+
+→ related CanHope Steel product page
+
+→ RFQ or contact
+
+Main official website:
+
+`https://canhopesteel.com/`
+
+The calculator must not repeatedly interrupt users before they complete useful work.
+
+RFQ entry points and product links should appear naturally near results, summaries, or relevant product context.
+
+---
+
+## 27. Content and Interface Rules
+
+Primary users are international steel buyers, engineers, contractors, and project procurement staff.
+
+The main interface language should be English.
+
+English copy must be clear, professional, and easy for non-native English speakers to understand.
+
+Desktop and mobile experiences must both be considered.
+
+Do not hardcode new user-facing text in page components when an existing i18n pattern can be used.
+
+---
+
+## 28. Change Workflow for Future Work
+
+Before each modification:
+
+1. Read the relevant files.
+2. Explain the existing logic.
+3. Explain the impact scope.
+4. Propose the smallest safe change.
+
+After each modification:
+
+1. Run the project's existing lint, type-check, test, and build commands when applicable.
+2. List every modified file.
+3. Explain what changed in each file.
+4. Explain which existing functions did not change.
+5. Provide manual test steps.
+6. Report remaining risks.
+
+For documentation-only changes, lint/build may be unnecessary, but the reason must be reported.
+
+---
+
+## 29. Deployment Safety
+
+Unless a task explicitly asks for it, do not:
+
+- Automatically deploy
+- Modify production environment variables
+- Modify domains
+- Modify Hostinger configuration
+- Delete production data
+- Force push
+- Rewrite Git history
+- Directly overwrite the production branch
+
+Major changes should use a separate branch first.

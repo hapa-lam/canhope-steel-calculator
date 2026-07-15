@@ -7,16 +7,16 @@ export function formatNumber(value: number, digits = 2, locale: Locale = "zh") {
   }).format(value);
 }
 
-export function formatKg(value?: number, locale: Locale = "zh", pendingLabel = "重量待补充") {
-  if (value === undefined) {
+export function formatKg(value?: number | null, locale: Locale = "zh", pendingLabel = "重量待补充") {
+  if (value === undefined || value === null) {
     return pendingLabel;
   }
 
   return `${formatNumber(value, 2, locale)} ${locale === "zh" ? "千克" : "kg"}`;
 }
 
-export function formatTonFromKg(valueKg?: number, locale: Locale = "zh", pendingLabel = "重量待补充") {
-  if (valueKg === undefined) {
+export function formatTonFromKg(valueKg?: number | null, locale: Locale = "zh", pendingLabel = "重量待补充") {
+  if (valueKg === undefined || valueKg === null) {
     return pendingLabel;
   }
 

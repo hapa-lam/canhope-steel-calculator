@@ -1,24 +1,40 @@
 import assert from "node:assert/strict";
-import { access, readFile, readdir } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
-const developmentPreviewMeta =
-  /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i;
-const templateRoot = new URL("../", import.meta.url);
-const previewRoot = new URL("../app/_sites-preview/", import.meta.url);
+const distServerEntry = new URL("../dist/server/index.js", import.meta.url);
+const distClientRoot = new URL("../dist/client/", import.meta.url);
+const localAbsolutePathPattern = /\/Users\/|\/private\/|\/var\/folders\/|[A-Z]:\\/i;
+const oldStarterPattern =
+  /Your site is taking shape|Codex is working|Codex is building the first version|react-loading-skeleton/i;
 
-async function render() {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
+async function fetchStaticAsset(request) {
+  const pathname = new URL(request.url).pathname;
+  const relativePath = pathname.replace(/^\/+/, "");
+
+  if (!relativePath || relativePath.includes("..")) {
+    return new Response("Not found", { status: 404 });
+  }
+
+  try {
+    return new Response(await readFile(new URL(relativePath, distClientRoot)));
+  } catch {
+    return new Response("Not found", { status: 404 });
+  }
+}
+
+async function render(pathname = "/") {
+  const workerUrl = new URL(distServerEntry.href);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
   const { default: worker } = await import(workerUrl.href);
 
   return worker.fetch(
-    new Request("http://localhost/", {
+    new Request(`http://localhost${pathname}`, {
       headers: { accept: "text/html" },
     }),
     {
       ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
+        fetch: fetchStaticAsset,
       },
     },
     {
@@ -28,60 +44,98 @@ async function render() {
   );
 }
 
-test("server-renders the starter loading skeleton", async () => {
+test("server-renders the CANHOPE steel calculator shell", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, developmentPreviewMeta);
-  assert.match(html, /<title>Your site is taking shape<\/title>/i);
-  assert.match(html, /Codex is working/);
-  assert.match(html, /Your site is taking shape/);
-  assert.match(html, /Codex is building the first version/);
-  assert.match(html, /react-loading-skeleton/);
-  assert.match(html, /role="status"/);
+  assert.ok(html.length > 1000);
+  assert.match(html, /^<!DOCTYPE html><html lang="en">/i);
+  assert.match(html, /<title>Free Steel Weight Calculator &amp; RFQ Builder \| CANHOPE<\/title>/i);
+  assert.match(
+    html,
+    /<meta name="description" content="Select steel products, sizes, wall thicknesses and quantities to calculate theoretical weight, estimate 40HQ capacity by weight, and prepare an RFQ\."/i,
+  );
+  assert.match(html, /<link rel="canonical" href="https:\/\/calculator\.canhopesteel\.com\/"/i);
+  assert.match(html, /<meta property="og:title" content="Free Steel Weight Calculator &amp; RFQ Builder \| CANHOPE"/i);
+  assert.match(html, /<meta property="og:description" content="[^"]+"/i);
+  assert.match(html, /<meta property="og:url" content="https:\/\/calculator\.canhopesteel\.com\/"/i);
+  assert.match(html, /<meta name="twitter:card" content="summary"/i);
+  assert.match(html, /<script type="application\/ld\+json">/i);
+  assert.match(html, /<main\b[^>]*\bclass="[^"]*\bapp-shell\b/i);
+  assert.match(html, /CANHOPE/i);
+  assert.match(html, /<h1[^>]*>Steel Weight Calculator<\/h1>/i);
+  assert.match(html, /canhopesteel\.com/i);
+  assert.doesNotMatch(html, oldStarterPattern);
+  assert.doesNotMatch(html, /info@conhopesteel\.com/i);
+  assert.doesNotMatch(html, localAbsolutePathPattern);
+
+  if (html.includes("info@")) {
+    assert.match(html, /info@canhopesteel\.com/i);
+  }
 });
 
-test("keeps the loading skeleton scoped and disposable", async () => {
-  const [preview, css, page, layout, packageJson, files] = await Promise.all([
-    readFile(new URL("SkeletonPreview.tsx", previewRoot), "utf8"),
-    readFile(new URL("preview.css", previewRoot), "utf8"),
-    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../package.json", import.meta.url), "utf8"),
-    readdir(previewRoot),
-  ]);
+test("emits valid homepage JSON-LD without unsupported claims", async () => {
+  const response = await render();
+  const html = await response.text();
+  const match = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/i);
 
-  assert.deepEqual(files.sort(), ["SkeletonPreview.tsx", "preview.css"]);
-  assert.match(preview, /from "react-loading-skeleton"/);
-  assert.match(preview, /baseColor="#eceae7"/);
-  assert.match(preview, /highlightColor="#f9f8f6"/);
-  assert.match(preview, /duration=\{2\.8\}/);
-  assert.match(preview, /sites-skeleton-search-placeholder/);
-  assert.match(packageJson, /"react-loading-skeleton": "3\.5\.0"/);
+  assert.ok(match, "the homepage should include JSON-LD");
+  const jsonLd = JSON.parse(match[1]);
+  const webApplication = jsonLd["@graph"].find((entry) => entry["@type"] === "WebApplication");
 
-  const shellIndex = preview.indexOf('className="sites-skeleton-shell"');
-  const statusIndex = preview.indexOf('className="sites-skeleton-status"');
-  assert.ok(shellIndex >= 0 && statusIndex > shellIndex);
-  assert.match(css, /position:\s*fixed/);
-  assert.match(css, /inset:\s*0/);
-  assert.match(css, /opacity:\s*0\.52/);
-  assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.doesNotMatch(css, /#020617|canvas|pets|progress/i);
-  assert.doesNotMatch(
-    preview,
-    /loading-spinner|status-mark|status-progress|canvas|cookie|random/i,
+  assert.equal(webApplication.url, "https://calculator.canhopesteel.com/");
+  assert.equal(webApplication.inLanguage, "en");
+  for (const entry of jsonLd["@graph"]) {
+    assert.equal("aggregateRating" in entry, false);
+    assert.equal("rating" in entry, false);
+    assert.equal("review" in entry, false);
+  }
+  assert.doesNotMatch(JSON.stringify(jsonLd), /info@conhopesteel\.com/i);
+});
+
+test("serves crawlable robots and sitemap assets for the current homepage only", async () => {
+  const robotsResponse = await render("/robots.txt");
+  const robots = await robotsResponse.text();
+  const sitemapResponse = await render("/sitemap.xml");
+  const sitemap = await sitemapResponse.text();
+
+  assert.equal(robotsResponse.status, 200);
+  assert.match(robots, /User-agent: \*/i);
+  assert.match(robots, /Allow: \//i);
+  assert.match(robots, /Sitemap: https:\/\/calculator\.canhopesteel\.com\/sitemap\.xml/i);
+  assert.equal(sitemapResponse.status, 200);
+  assert.match(sitemap, /<loc>https:\/\/calculator\.canhopesteel\.com\/<\/loc>/i);
+  assert.doesNotMatch(sitemap, /pipe-weight-calculator|square-tube-weight-calculator|container-loading-calculator/i);
+});
+
+test("writes the expected production build assets", async () => {
+  const htmlResponse = await render();
+  const html = await htmlResponse.text();
+
+  await access(distServerEntry);
+  await access(distClientRoot);
+  await access(new URL("robots.txt", distClientRoot));
+  await access(new URL("sitemap.xml", distClientRoot));
+
+  const assetReferences = [...html.matchAll(/(?:href|src)=["'](\/assets\/[^"']+)["']/g)].map(
+    (match) => match[1],
   );
+  const scriptReferences = [...html.matchAll(/<script\b/gi)];
 
-  assert.match(page, /export const metadata:\s*Metadata/);
-  assert.match(page, /"codex-preview": "development"/);
-  assert.match(page, /<SkeletonPreview \/>/);
-  assert.match(layout, /title:\s*"Starter Project"/);
-  assert.doesNotMatch(layout, /codex-preview|_sites-preview|themeColor|\bViewport\b/);
-  assert.doesNotMatch(css, /(^|\s)(html|body)\s*\{/m);
+  assert.ok(assetReferences.length > 0);
+  assert.ok(scriptReferences.length > 0);
+  assert.ok(assetReferences.some((asset) => /\.js$/i.test(asset)));
+  assert.ok(assetReferences.some((asset) => /\.css$/i.test(asset)));
 
-  await assert.rejects(
-    access(new URL("public/_sites-preview", templateRoot)),
-  );
+  for (const asset of assetReferences) {
+    assert.doesNotMatch(asset, localAbsolutePathPattern);
+    assert.doesNotMatch(asset, /app\/page|app\/layout|node_modules/i);
+  }
+
+  const serverEntry = await readFile(distServerEntry, "utf8");
+  assert.ok(serverEntry.length > 0);
+  assert.doesNotMatch(serverEntry, oldStarterPattern);
+  assert.doesNotMatch(serverEntry, /info@conhopesteel\.com/i);
 });

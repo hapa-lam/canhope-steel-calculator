@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { homepageJsonLd, seoConfig } from "@/config/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,12 +14,39 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Steel Weight Calculator & RFQ Builder | CANHOPE STEEL",
-  description:
-    "钢材重量计算与询盘工具，支持镀锌管、镀锌板管、黑料钢管、方矩管、角钢、槽钢和沟槽管件。",
+  metadataBase: new URL(seoConfig.siteUrl),
+  title: seoConfig.title,
+  description: seoConfig.description,
+  applicationName: seoConfig.siteName,
+  authors: [{ name: seoConfig.brandName, url: seoConfig.mainWebsiteUrl }],
+  creator: seoConfig.brandName,
+  publisher: seoConfig.brandName,
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  category: "Steel calculation tools",
+  referrer: "origin-when-cross-origin",
+  alternates: {
+    canonical: seoConfig.siteUrl,
+  },
+  openGraph: {
+    type: "website",
+    siteName: seoConfig.siteName,
+    title: seoConfig.title,
+    description: seoConfig.description,
+    url: seoConfig.siteUrl,
+    locale: seoConfig.defaultLocale,
+  },
+  twitter: {
+    card: seoConfig.twitterCard,
+    title: seoConfig.title,
+    description: seoConfig.description,
+  },
   icons: {
-    icon: "/canhope-logo.png",
-    shortcut: "/canhope-logo.png",
+    icon: seoConfig.logoPath,
+    shortcut: seoConfig.logoPath,
   },
 };
 
@@ -32,6 +60,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageJsonLd) }}
+        />
         {children}
       </body>
     </html>

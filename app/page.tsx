@@ -70,18 +70,35 @@ import type {
   MaterialModule,
   MaterialRow,
   ProductType,
+  AngleSteelRow,
+  ChannelSteelRow,
   FlatSteelBarRow,
+  GroovedFittingRow,
+  IBeamRow,
   RoundSteelBarRow,
   SquareTubeProductType,
+  SquareTubeRow,
+  SteelPipeRow,
   SteelPipeProductType,
 } from "@/types/materials";
 
 type RowUpdates = Record<string, string | number | boolean | null | undefined>;
+type LegacyMaterialRow =
+  | MaterialRow
+  | (Omit<SteelPipeRow, "productType"> & { productType: "round_pipe" })
+  | (Omit<SquareTubeRow, "productType"> & { productType: "square_tube" });
+type LegacyMaterialModule = Omit<MaterialModule, "productType" | "rows"> & {
+  productType: ProductType | "square_tube";
+  rows: LegacyMaterialRow[];
+};
+type LegacyMaterialList = Omit<MaterialList, "modules"> & {
+  modules: LegacyMaterialModule[];
+};
 
 const STORAGE_KEY = "canhope-steel-calculator-material-list";
 const LOCALE_STORAGE_KEY = "steel-calculator-locale";
 const pageTitles: Record<Locale, string> = {
-  en: "Steel Weight Calculator & RFQ Builder | CANHOPE STEEL",
+  en: "Free Steel Weight Calculator & RFQ Builder | CANHOPE",
   zh: "CANHOPE STEEL | 钢材重量计算与询盘工具",
 };
 
@@ -121,6 +138,38 @@ function isSteelPipeProduct(type: string): type is SteelPipeProductType {
 
 function isSquareTubeProduct(type: string): type is SquareTubeProductType {
   return squareTubeProductTypes.includes(type as SquareTubeProductType);
+}
+
+function isSteelPipeRow(row: MaterialRow): row is SteelPipeRow {
+  return isSteelPipeProduct(row.productType);
+}
+
+function isSquareTubeRow(row: MaterialRow): row is SquareTubeRow {
+  return isSquareTubeProduct(row.productType);
+}
+
+function isAngleSteelRow(row: MaterialRow): row is AngleSteelRow {
+  return row.productType === "angle_steel";
+}
+
+function isChannelSteelRow(row: MaterialRow): row is ChannelSteelRow {
+  return row.productType === "channel_steel";
+}
+
+function isIBeamRow(row: MaterialRow): row is IBeamRow {
+  return row.productType === "i_beam";
+}
+
+function isRoundSteelBarRow(row: MaterialRow): row is RoundSteelBarRow {
+  return row.productType === "round_steel_bar";
+}
+
+function isFlatSteelBarRow(row: MaterialRow): row is FlatSteelBarRow {
+  return row.productType === "flat_steel_bar";
+}
+
+function isGroovedFittingRow(row: MaterialRow): row is GroovedFittingRow {
+  return row.productType === "grooved_fitting";
 }
 
 function isCustomSizeProduct(type: ProductType): type is CustomSizeProductType {
@@ -742,7 +791,7 @@ function getDisplayLengthM(row: Exclude<MaterialRow, { productType: "grooved_fit
 }
 
 function getRowDescription(row: MaterialRow, locale: Locale, m: Messages) {
-  if (isSteelPipeProduct(row.productType)) {
+  if (isSteelPipeRow(row)) {
     if (row.dimensionMode === "custom") {
       return `${m.customSize.customSpec} ${productName(row.productType, m)} / ${m.fields.outerDiameter} ${
         row.customOuterDiameterMm || 0
@@ -769,7 +818,7 @@ function getRowDescription(row: MaterialRow, locale: Locale, m: Messages) {
       .join(" / ");
   }
 
-  if (isSquareTubeProduct(row.productType)) {
+  if (isSquareTubeRow(row)) {
     if (row.dimensionMode === "custom") {
       return `${m.customSize.customSpec} ${productName(row.productType, m)} / ${row.customWidthMm || 0}×${
         row.customHeightMm || 0
@@ -784,7 +833,7 @@ function getRowDescription(row: MaterialRow, locale: Locale, m: Messages) {
       .join(" / ");
   }
 
-  if (row.productType === "angle_steel") {
+  if (isAngleSteelRow(row)) {
     if (row.dimensionMode === "custom") {
       return `${m.customSize.customSpec} ${productName(row.productType, m)} / ${row.customLegAMm || 0}×${
         row.customLegBMm || 0
@@ -799,7 +848,7 @@ function getRowDescription(row: MaterialRow, locale: Locale, m: Messages) {
       .join(" / ");
   }
 
-  if (row.productType === "channel_steel") {
+  if (isChannelSteelRow(row)) {
     return [
       getChannelSteelSelectedSpecLabel(row.specId),
       getChannelSteelSelectedReferenceWeightLabel(row.specId, row.referenceWeightId, locale),
@@ -808,7 +857,7 @@ function getRowDescription(row: MaterialRow, locale: Locale, m: Messages) {
       .join(" / ");
   }
 
-  if (row.productType === "i_beam") {
+  if (isIBeamRow(row)) {
     return [
       `${m.fields.spec} ${row.specId}`,
       `${m.fields.theoreticalWeight} ${getIBeamSelectedReferenceWeightLabel(row.specId, row.referenceWeightId, locale)}`,
@@ -817,7 +866,7 @@ function getRowDescription(row: MaterialRow, locale: Locale, m: Messages) {
       .join(" / ");
   }
 
-  if (row.productType === "round_steel_bar") {
+  if (isRoundSteelBarRow(row)) {
     if (row.dimensionMode === "custom") {
       return `${m.customSize.customSpec} ${productName(row.productType, m)} / ${m.fields.diameter} ${
         row.customDiameterMm || 0
@@ -832,7 +881,7 @@ function getRowDescription(row: MaterialRow, locale: Locale, m: Messages) {
       .join(" / ");
   }
 
-  if (row.productType === "flat_steel_bar") {
+  if (isFlatSteelBarRow(row)) {
     if (row.dimensionMode === "custom") {
       return `${m.customSize.customSpec} ${productName(row.productType, m)} / ${m.fields.width} ${
         row.customWidthMm || 0
@@ -848,7 +897,7 @@ function getRowDescription(row: MaterialRow, locale: Locale, m: Messages) {
       .join(" / ");
   }
 
-  if (row.productType === "grooved_fitting") {
+  if (isGroovedFittingRow(row)) {
     return [
       getGroovedFittingProductLabel(row.fittingTypeId, locale),
       row.specification,
@@ -903,23 +952,33 @@ function getGroovedFittingRfqLines(
   return [...baseLines, ...packingLines].filter(Boolean);
 }
 
+function getGroovedFittingRowRecordId(row: GroovedFittingRow) {
+  return getGroovedFittingRecordId({
+    productId: row.fittingTypeId,
+    specification: row.specification,
+    pressureRatingMpa: row.pressureRatingMpa,
+  });
+}
+
 function normalizeStoredMaterialList(value: MaterialList): MaterialList {
+  const legacyValue = value as LegacyMaterialList;
+
   return {
-    modules: value.modules.map((module) => {
-      const productType =
+    modules: legacyValue.modules.map((module) => {
+      const productType: ProductType =
         (module.productType as string) === "square_tube"
           ? "galvanized_square_rectangular_tube"
-          : module.productType;
+          : (module.productType as ProductType);
 
       return {
       ...module,
       productType,
-      rows: module.rows.map((row) => {
-        const normalizedRow =
+      rows: module.rows.map<MaterialRow>((row) => {
+        const normalizedRow: MaterialRow =
           row.productType === "round_pipe"
-            ? ({ ...row, productType: "galvanized_pipe" } as MaterialRow)
-            : (row.productType as string) === "square_tube"
-              ? ({ ...row, productType: "galvanized_square_rectangular_tube" } as MaterialRow)
+            ? { ...row, productType: "galvanized_pipe" }
+            : row.productType === "square_tube"
+              ? { ...row, productType: "galvanized_square_rectangular_tube" }
             : row;
 
         if (normalizedRow.productType === "channel_steel") {
@@ -1053,14 +1112,15 @@ function normalizeStoredMaterialList(value: MaterialList): MaterialList {
             isSquareTubeProduct(normalizedRow.productType) &&
             dimensionMode === "standard"
           ) {
-            const squareTubeData = getSquareTubeData(normalizedRow.productType);
+            const squareTubeProductType = normalizedRow.productType;
+            const squareTubeData = getSquareTubeData(squareTubeProductType);
             const firstSpec = squareTubeData[0];
             const matchingSpec =
               squareTubeData.find((spec) => spec.id === normalizedRow.specId) ??
               firstSpec;
             const matchingThickness = matchingSpec?.thicknessOptions.find(
               (thickness) =>
-                getSquareTubeThicknessId(normalizedRow.productType, thickness.thicknessMm) ===
+                getSquareTubeThicknessId(squareTubeProductType, thickness.thicknessMm) ===
                 normalizedRow.thicknessId,
             ) ?? matchingSpec?.thicknessOptions[0];
 
@@ -1069,7 +1129,7 @@ function normalizeStoredMaterialList(value: MaterialList): MaterialList {
               dimensionMode,
               specId: matchingSpec?.id ?? "",
               thicknessId: matchingThickness
-                ? getSquareTubeThicknessId(normalizedRow.productType, matchingThickness.thicknessMm)
+                ? getSquareTubeThicknessId(squareTubeProductType, matchingThickness.thicknessMm)
                 : "",
               lengthM: 6,
               quantity: Number.isFinite(normalizedRow.quantity) ? normalizedRow.quantity : 0,
@@ -1535,7 +1595,9 @@ export default function Home() {
         <section className="content-panel">
           <div className="mb-5 flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-2xl font-bold tracking-normal text-slate-950">{m.materialList.title}</h1>
+              <h1 className="text-2xl font-bold tracking-normal text-slate-950">
+                {locale === "en" ? "Steel Weight Calculator" : "钢材重量计算器"}
+              </h1>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <button className="secondary-button" type="button" onClick={clearAll}>
@@ -1626,6 +1688,9 @@ function ProductModule({
       : missingRows > 0
         ? `${formatTonFromKg(subtotal, locale, m.notices.weightPending)}，${m.summary.additionalMissingRows.replace("{count}", String(missingRows))}`
         : formatTonFromKg(subtotal, locale, m.notices.weightPending);
+  const customSizeProductType = isCustomSizeProduct(module.productType)
+    ? module.productType
+    : null;
 
   return (
     <div ref={setModuleRef} className="module-card scroll-mt-24">
@@ -1694,8 +1759,8 @@ function ProductModule({
         </>
       )}
 
-      {isCustomSizeProduct(module.productType) ? (
-        <button className="custom-size-link" type="button" onClick={() => onAddCustomRow(module.productType)}>
+      {customSizeProductType ? (
+        <button className="custom-size-link" type="button" onClick={() => onAddCustomRow(customSizeProductType)}>
           {m.customSize.noSuitableSpec}
           {locale === "zh" ? "" : " "}
           {m.customSize.useCustomSize}
@@ -1826,7 +1891,7 @@ function ProductRow({
     </>
   );
 
-  if (isSteelPipeProduct(row.productType)) {
+  if (isSteelPipeRow(row)) {
     return (
       <tr>
         {row.dimensionMode === "custom" ? (
@@ -1861,7 +1926,7 @@ function ProductRow({
     );
   }
 
-  if (isSquareTubeProduct(row.productType)) {
+  if (isSquareTubeRow(row)) {
     return (
       <tr>
         {row.dimensionMode === "custom" ? (
@@ -1905,7 +1970,7 @@ function ProductRow({
     );
   }
 
-  if (row.productType === "angle_steel") {
+  if (isAngleSteelRow(row)) {
     return (
       <tr>
         {row.dimensionMode === "custom" ? (
@@ -1945,7 +2010,7 @@ function ProductRow({
     );
   }
 
-  if (row.productType === "channel_steel") {
+  if (isChannelSteelRow(row)) {
     return (
       <tr>
         <td>
@@ -1980,7 +2045,7 @@ function ProductRow({
     );
   }
 
-  if (row.productType === "i_beam") {
+  if (isIBeamRow(row)) {
     return (
       <tr>
         <td>
@@ -2015,7 +2080,7 @@ function ProductRow({
     );
   }
 
-  if (row.productType === "round_steel_bar") {
+  if (isRoundSteelBarRow(row)) {
     return (
       <tr>
         {row.dimensionMode === "custom" ? (
@@ -2049,7 +2114,7 @@ function ProductRow({
     );
   }
 
-  if (row.productType === "flat_steel_bar") {
+  if (isFlatSteelBarRow(row)) {
     return (
       <tr>
         {row.dimensionMode === "custom" ? (
@@ -2104,152 +2169,7 @@ function ProductRow({
     );
   }
 
-  if (row.productType === "i_beam") {
-    return (
-      <>
-        <label className="mobile-field-label">
-          {m.fields.spec}
-          <IBeamSpecSelect
-            value={row.specId}
-            onChange={(specId) => {
-              const nextSpec = iBeamData.find((spec) => spec.id === specId);
-              const nextWeight = nextSpec?.weightOptions[0];
-              onUpdateRow(row.id, {
-                specId,
-                referenceWeightId: nextWeight?.id ?? "",
-                lengthM: 6,
-              });
-            }}
-            m={m}
-          />
-        </label>
-        <label className="mobile-field-label">
-          {m.fields.theoreticalWeight}
-          <IBeamReferenceWeightSelect
-            specId={row.specId}
-            value={row.referenceWeightId}
-            onChange={(referenceWeightId) => onUpdateRow(row.id, { referenceWeightId })}
-            locale={locale}
-            m={m}
-          />
-        </label>
-        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} locale={locale} m={m} />
-        <label className="mobile-field-label">
-          {m.fields.piecesPerBundle}
-          <input
-            className="field"
-            readOnly
-            value={getIBeamSelectedBundleLabel(row.specId, row.referenceWeightId, locale, m)}
-          />
-        </label>
-      </>
-    );
-  }
-
-  if (row.productType === "round_steel_bar") {
-    if (row.dimensionMode === "custom") {
-      return (
-        <>
-          <label className="mobile-field-label">
-            {m.fields.diameter}
-            <NumberField
-              value={row.customDiameterMm ?? 0}
-              onChange={(value) => onUpdateRow(row.id, { customDiameterMm: value })}
-            />
-          </label>
-          <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
-        </>
-      );
-    }
-
-    return (
-      <>
-        <label className="mobile-field-label">
-          {m.fields.diameter}
-          <RoundSteelBarSpecSelect
-            value={row.specId}
-            onChange={(specId) => onUpdateRow(row.id, { specId, lengthM: 6 })}
-            m={m}
-          />
-        </label>
-        <label className="mobile-field-label">
-          {m.fields.theoreticalWeight}
-          <input className="field" readOnly value={getRoundSteelBarSelectedReferenceWeightLabel(row.specId, locale)} />
-        </label>
-        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
-        <label className="mobile-field-label">
-          {m.fields.piecesPerBundle}
-          <input className="field" readOnly value={getRoundSteelBarSelectedBundleLabel(row.specId, locale, m)} />
-        </label>
-      </>
-    );
-  }
-
-  if (row.productType === "flat_steel_bar") {
-    if (row.dimensionMode === "custom") {
-      return (
-        <>
-          <label className="mobile-field-label">
-            {m.fields.width}
-            <NumberField
-              value={row.customWidthMm ?? 0}
-              onChange={(value) => onUpdateRow(row.id, { customWidthMm: value })}
-            />
-          </label>
-          <label className="mobile-field-label">
-            {m.fields.thickness}
-            <NumberField
-              value={row.customThicknessMm ?? 0}
-              onChange={(value) => onUpdateRow(row.id, { customThicknessMm: value })}
-            />
-          </label>
-          <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
-        </>
-      );
-    }
-
-    return (
-      <>
-        <label className="mobile-field-label">
-          {m.fields.width}
-          <FlatSteelBarSpecSelect
-            value={row.specId}
-            onChange={(specId) => {
-              const nextSpec = flatSteelBarData.find((spec) => spec.id === specId);
-              const nextThickness = nextSpec?.thicknessOptions[0];
-              onUpdateRow(row.id, {
-                specId,
-                thicknessId: nextThickness ? getFlatSteelBarThicknessId(nextThickness.thicknessMm) : "",
-                lengthM: 6,
-              });
-            }}
-            m={m}
-          />
-        </label>
-        <label className="mobile-field-label">
-          {m.fields.thickness}
-          <FlatSteelBarThicknessSelect
-            specId={row.specId}
-            value={row.thicknessId}
-            onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
-            locale={locale}
-            m={m}
-          />
-        </label>
-        <label className="mobile-field-label">
-          {m.fields.theoreticalWeight}
-          <input className="field" readOnly value={getFlatSteelBarSelectedReferenceWeightLabel(row.specId, row.thicknessId, locale)} />
-        </label>
-        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
-        <label className="mobile-field-label">
-          {m.fields.piecesPerBundle}
-          <input className="field" readOnly value={getFlatSteelBarSelectedBundleLabel(row.specId, row.thicknessId, locale, m)} />
-        </label>
-      </>
-    );
-  }
-
-  if (row.productType === "grooved_fitting") {
+  if (isGroovedFittingRow(row)) {
     const selectedRecord = getSelectedGroovedFittingRecord(row);
 
     return (
@@ -2360,52 +2280,24 @@ function ProductRowFields({
   locale: Locale;
   m: Messages;
 }) {
-  if (isSteelPipeProduct(row.productType) || isSquareTubeProduct(row.productType)) {
+  if (isSteelPipeRow(row)) {
     if (row.dimensionMode === "custom") {
       return (
         <>
-          {isSteelPipeProduct(row.productType) ? (
-            <>
-              <label className="mobile-field-label">
-                {m.fields.outerDiameter}
-                <NumberField
-                  value={row.customOuterDiameterMm ?? 0}
-                  onChange={(value) => onUpdateRow(row.id, { customOuterDiameterMm: value })}
-                />
-              </label>
-              <label className="mobile-field-label">
-                {m.fields.thickness}
-                <NumberField
-                  value={row.customThicknessMm ?? 0}
-                  onChange={(value) => onUpdateRow(row.id, { customThicknessMm: value })}
-                />
-              </label>
-            </>
-          ) : (
-            <>
-              <label className="mobile-field-label">
-                {m.fields.width}
-                <NumberField
-                  value={row.customWidthMm ?? 0}
-                  onChange={(value) => onUpdateRow(row.id, { customWidthMm: value })}
-                />
-              </label>
-              <label className="mobile-field-label">
-                {m.fields.height}
-                <NumberField
-                  value={row.customHeightMm ?? 0}
-                  onChange={(value) => onUpdateRow(row.id, { customHeightMm: value })}
-                />
-              </label>
-              <label className="mobile-field-label">
-                {m.fields.thickness}
-                <NumberField
-                  value={row.customThicknessMm ?? 0}
-                  onChange={(value) => onUpdateRow(row.id, { customThicknessMm: value })}
-                />
-              </label>
-            </>
-          )}
+          <label className="mobile-field-label">
+            {m.fields.outerDiameter}
+            <NumberField
+              value={row.customOuterDiameterMm ?? 0}
+              onChange={(value) => onUpdateRow(row.id, { customOuterDiameterMm: value })}
+            />
+          </label>
+          <label className="mobile-field-label">
+            {m.fields.thickness}
+            <NumberField
+              value={row.customThicknessMm ?? 0}
+              onChange={(value) => onUpdateRow(row.id, { customThicknessMm: value })}
+            />
+          </label>
           <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
         </>
       );
@@ -2415,61 +2307,98 @@ function ProductRowFields({
       <>
         <label className="mobile-field-label">
           {m.fields.spec}
-          {isSteelPipeProduct(row.productType) ? (
-            <SteelPipeSpecSelect
-              productType={row.productType}
-              value={row.specId}
-              onChange={(specId) => onUpdateRow(row.id, { specId, thicknessId: "" })}
-              locale={locale}
-              m={m}
-            />
-          ) : (
-            <SquareTubeSpecSelect
-              productType={row.productType}
-              value={row.specId}
-              onChange={(specId) => {
-                const nextSpec = getSquareTubeData(row.productType).find((spec) => spec.id === specId);
-                const nextThickness = nextSpec?.thicknessOptions[0];
-                onUpdateRow(row.id, {
-                  specId,
-                  thicknessId: nextThickness
-                    ? getSquareTubeThicknessId(row.productType, nextThickness.thicknessMm)
-                    : "",
-                  lengthM: 6,
-                });
-              }}
-              m={m}
-            />
-          )}
+          <SteelPipeSpecSelect
+            productType={row.productType}
+            value={row.specId}
+            onChange={(specId) => onUpdateRow(row.id, { specId, thicknessId: "" })}
+            locale={locale}
+            m={m}
+          />
         </label>
         <label className="mobile-field-label">
           {m.fields.thickness}
-          {isSteelPipeProduct(row.productType) ? (
-            <SteelPipeThicknessSelect
-              productType={row.productType}
-              specId={row.specId}
-              value={row.thicknessId}
-              onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
-              locale={locale}
-              m={m}
-            />
-          ) : (
-            <SquareTubeThicknessSelect
-              productType={row.productType}
-              specId={row.specId}
-              value={row.thicknessId}
-              onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
-              locale={locale}
-              m={m}
-            />
-          )}
+          <SteelPipeThicknessSelect
+            productType={row.productType}
+            specId={row.specId}
+            value={row.thicknessId}
+            onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
+            locale={locale}
+            m={m}
+          />
         </label>
         <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
       </>
     );
   }
 
-  if (row.productType === "angle_steel") {
+  if (isSquareTubeRow(row)) {
+    if (row.dimensionMode === "custom") {
+      return (
+        <>
+          <label className="mobile-field-label">
+            {m.fields.width}
+            <NumberField
+              value={row.customWidthMm ?? 0}
+              onChange={(value) => onUpdateRow(row.id, { customWidthMm: value })}
+            />
+          </label>
+          <label className="mobile-field-label">
+            {m.fields.height}
+            <NumberField
+              value={row.customHeightMm ?? 0}
+              onChange={(value) => onUpdateRow(row.id, { customHeightMm: value })}
+            />
+          </label>
+          <label className="mobile-field-label">
+            {m.fields.thickness}
+            <NumberField
+              value={row.customThicknessMm ?? 0}
+              onChange={(value) => onUpdateRow(row.id, { customThicknessMm: value })}
+            />
+          </label>
+          <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        </>
+      );
+    }
+
+    return (
+      <>
+        <label className="mobile-field-label">
+          {m.fields.spec}
+          <SquareTubeSpecSelect
+            productType={row.productType}
+            value={row.specId}
+            onChange={(specId) => {
+              const nextSpec = getSquareTubeData(row.productType).find((spec) => spec.id === specId);
+              const nextThickness = nextSpec?.thicknessOptions[0];
+              onUpdateRow(row.id, {
+                specId,
+                thicknessId: nextThickness
+                  ? getSquareTubeThicknessId(row.productType, nextThickness.thicknessMm)
+                  : "",
+                lengthM: 6,
+              });
+            }}
+            m={m}
+          />
+        </label>
+        <label className="mobile-field-label">
+          {m.fields.thickness}
+          <SquareTubeThicknessSelect
+            productType={row.productType}
+            specId={row.specId}
+            value={row.thicknessId}
+            onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
+            locale={locale}
+            m={m}
+          />
+        </label>
+        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+      </>
+    );
+  }
+
+  if (isAngleSteelRow(row)) {
     if (row.dimensionMode === "custom") {
       return (
         <>
@@ -2532,7 +2461,7 @@ function ProductRowFields({
     );
   }
 
-  if (row.productType === "channel_steel") {
+  if (isChannelSteelRow(row)) {
     return (
       <>
         <label className="mobile-field-label">
@@ -2574,7 +2503,153 @@ function ProductRowFields({
     );
   }
 
-  return (
+  if (isIBeamRow(row)) {
+    return (
+      <>
+        <label className="mobile-field-label">
+          {m.fields.spec}
+          <IBeamSpecSelect
+            value={row.specId}
+            onChange={(specId) => {
+              const nextSpec = iBeamData.find((spec) => spec.id === specId);
+              const nextWeight = nextSpec?.weightOptions[0];
+              onUpdateRow(row.id, {
+                specId,
+                referenceWeightId: nextWeight?.id ?? "",
+                lengthM: 6,
+              });
+            }}
+            m={m}
+          />
+        </label>
+        <label className="mobile-field-label">
+          {m.fields.theoreticalWeight}
+          <IBeamReferenceWeightSelect
+            specId={row.specId}
+            value={row.referenceWeightId}
+            onChange={(referenceWeightId) => onUpdateRow(row.id, { referenceWeightId })}
+            locale={locale}
+            m={m}
+          />
+        </label>
+        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} locale={locale} m={m} />
+        <label className="mobile-field-label">
+          {m.fields.piecesPerBundle}
+          <input
+            className="field"
+            readOnly
+            value={getIBeamSelectedBundleLabel(row.specId, row.referenceWeightId, locale, m)}
+          />
+        </label>
+      </>
+    );
+  }
+
+  if (isRoundSteelBarRow(row)) {
+    if (row.dimensionMode === "custom") {
+      return (
+        <>
+          <label className="mobile-field-label">
+            {m.fields.diameter}
+            <NumberField
+              value={row.customDiameterMm ?? 0}
+              onChange={(value) => onUpdateRow(row.id, { customDiameterMm: value })}
+            />
+          </label>
+          <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        </>
+      );
+    }
+
+    return (
+      <>
+        <label className="mobile-field-label">
+          {m.fields.diameter}
+          <RoundSteelBarSpecSelect
+            value={row.specId}
+            onChange={(specId) => onUpdateRow(row.id, { specId, lengthM: 6 })}
+            m={m}
+          />
+        </label>
+        <label className="mobile-field-label">
+          {m.fields.theoreticalWeight}
+          <input className="field" readOnly value={getRoundSteelBarSelectedReferenceWeightLabel(row.specId, locale)} />
+        </label>
+        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        <label className="mobile-field-label">
+          {m.fields.piecesPerBundle}
+          <input className="field" readOnly value={getRoundSteelBarSelectedBundleLabel(row.specId, locale, m)} />
+        </label>
+      </>
+    );
+  }
+
+  if (isFlatSteelBarRow(row)) {
+    if (row.dimensionMode === "custom") {
+      return (
+        <>
+          <label className="mobile-field-label">
+            {m.fields.width}
+            <NumberField
+              value={row.customWidthMm ?? 0}
+              onChange={(value) => onUpdateRow(row.id, { customWidthMm: value })}
+            />
+          </label>
+          <label className="mobile-field-label">
+            {m.fields.thickness}
+            <NumberField
+              value={row.customThicknessMm ?? 0}
+              onChange={(value) => onUpdateRow(row.id, { customThicknessMm: value })}
+            />
+          </label>
+          <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        </>
+      );
+    }
+
+    return (
+      <>
+        <label className="mobile-field-label">
+          {m.fields.width}
+          <FlatSteelBarSpecSelect
+            value={row.specId}
+            onChange={(specId) => {
+              const nextSpec = flatSteelBarData.find((spec) => spec.id === specId);
+              const nextThickness = nextSpec?.thicknessOptions[0];
+              onUpdateRow(row.id, {
+                specId,
+                thicknessId: nextThickness ? getFlatSteelBarThicknessId(nextThickness.thicknessMm) : "",
+                lengthM: 6,
+              });
+            }}
+            m={m}
+          />
+        </label>
+        <label className="mobile-field-label">
+          {m.fields.thickness}
+          <FlatSteelBarThicknessSelect
+            specId={row.specId}
+            value={row.thicknessId}
+            onChange={(thicknessId) => onUpdateRow(row.id, { thicknessId })}
+            locale={locale}
+            m={m}
+          />
+        </label>
+        <label className="mobile-field-label">
+          {m.fields.theoreticalWeight}
+          <input className="field" readOnly value={getFlatSteelBarSelectedReferenceWeightLabel(row.specId, row.thicknessId, locale)} />
+        </label>
+        <MobileLengthQuantity row={row} onUpdateRow={onUpdateRow} onAddCustomRow={onAddCustomRow} locale={locale} m={m} />
+        <label className="mobile-field-label">
+          {m.fields.piecesPerBundle}
+          <input className="field" readOnly value={getFlatSteelBarSelectedBundleLabel(row.specId, row.thicknessId, locale, m)} />
+        </label>
+      </>
+    );
+  }
+
+  if (isGroovedFittingRow(row)) {
+    return (
     <>
       <GroovedFittingFields row={row} onUpdateRow={onUpdateRow} isMobile locale={locale} m={m} />
       <label className="mobile-field-label">
@@ -2590,7 +2665,10 @@ function ProductRowFields({
         <PackingDetails record={getSelectedGroovedFittingRecord(row) ?? row} locale={locale} m={m} />
       </label>
     </>
-  );
+    );
+  }
+
+  return null;
 }
 
 function MobileLengthQuantity({
@@ -3398,7 +3476,7 @@ function GroovedFittingFields({
   const specificationField = (
     <select
       className="field"
-      value={getGroovedFittingRecordId(row)}
+      value={getGroovedFittingRowRecordId(row)}
       onChange={(event) => {
         const nextRecord =
           specificationRecords.find((item) => getGroovedFittingRecordId(item) === event.target.value) ?? null;

@@ -14,7 +14,9 @@ import type {
   MaterialModule,
   MaterialRow,
   RowCalculation,
+  SquareTubeRow,
   SquareTubeProductType,
+  SteelPipeRow,
   SteelPipeProductType,
   SummaryResult,
 } from "@/types/materials";
@@ -36,6 +38,14 @@ function isSquareTubeProduct(type: string): type is SquareTubeProductType {
     type === "galvanized_square_rectangular_tube" ||
     type === "pre_galvanized_square_rectangular_tube"
   );
+}
+
+function isSteelPipeRow(row: MaterialRow): row is SteelPipeRow {
+  return isSteelPipeProduct(row.productType);
+}
+
+function isSquareTubeRow(row: MaterialRow): row is SquareTubeRow {
+  return isSquareTubeProduct(row.productType);
 }
 
 export function calculateRow(row: MaterialRow): RowCalculation {
@@ -64,7 +74,7 @@ export function calculateRow(row: MaterialRow): RowCalculation {
     };
   }
 
-  if (isSteelPipeProduct(row.productType) && row.dimensionMode === "custom") {
+  if (isSteelPipeRow(row) && row.dimensionMode === "custom") {
     const outerDiameter = row.customOuterDiameterMm ?? 0;
     const thickness = row.customThicknessMm ?? 0;
     const hasValidDimensions =
@@ -94,7 +104,7 @@ export function calculateRow(row: MaterialRow): RowCalculation {
     };
   }
 
-  if (isSquareTubeProduct(row.productType) && row.dimensionMode === "custom") {
+  if (isSquareTubeRow(row) && row.dimensionMode === "custom") {
     const width = row.customWidthMm ?? 0;
     const height = row.customHeightMm ?? 0;
     const thickness = row.customThicknessMm ?? 0;
@@ -207,7 +217,7 @@ export function calculateRow(row: MaterialRow): RowCalculation {
     };
   }
 
-  if (isSteelPipeProduct(row.productType)) {
+  if (isSteelPipeRow(row)) {
     if (row.productType === "galvanized_pipe") {
       const reference = findGalvanizedPipeReference(row.specId, row.thicknessId);
 
@@ -292,7 +302,7 @@ export function calculateRow(row: MaterialRow): RowCalculation {
     };
   }
 
-  if (isSquareTubeProduct(row.productType)) {
+  if (isSquareTubeRow(row)) {
     const reference =
       row.productType === "galvanized_square_rectangular_tube"
         ? findGalvanizedSquareRectangularTubeReference(row.specId, row.thicknessId)
@@ -445,7 +455,7 @@ export function calculateRow(row: MaterialRow): RowCalculation {
   }
 
   return {
-    rowId: row.id,
+    rowId: "",
     hasWeight: false,
     unitWeightLabel: "kg/m",
   };

@@ -1,5 +1,5 @@
 export const contactConfig = {
-  email: "info@conhopesteel.com",
+  email: "info@canhopesteel.com",
   wechat: {
     contactName: "Hapa Lam",
     searchPhoneNumber: "18027418524",

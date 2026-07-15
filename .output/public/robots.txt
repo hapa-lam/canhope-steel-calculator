@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://calculator.canhopesteel.com/sitemap.xml

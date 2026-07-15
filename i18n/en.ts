@@ -1,6 +1,4 @@
-import type { zh } from "./zh";
-
-export const en: typeof zh = {
+export const en = {
   nav: {
     subtitle: "Steel Weight Calculator & RFQ Builder",
     languageZh: "中文",
