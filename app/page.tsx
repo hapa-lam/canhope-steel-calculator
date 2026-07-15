@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { contactConfig } from "@/config/contact";
+import { WeightSummary } from "@/components/calculator/WeightSummary";
 import { productDefinitions } from "@/data/demo/product-definitions";
 import {
   angleSteelSpecifications,
@@ -47,7 +48,6 @@ import {
   calculateModuleSubtotal,
   calculateRow,
   calculateSummary,
-  CONTAINER_40HQ_TON,
 } from "@/lib/calculations";
 import {
   formatKg,
@@ -536,14 +536,6 @@ function formatModuleRowCount(count: number, locale: Locale) {
   }
 
   return ` (${count} ${count === 1 ? "row" : "rows"})`;
-}
-
-function formatSummaryQuantity(totalLengths: number, totalItems: number, locale: Locale) {
-  if (locale === "zh") {
-    return `${formatQuantity(totalLengths, "支", locale)} / ${formatQuantity(totalItems, "件", locale)}`;
-  }
-
-  return `${formatNumber(totalLengths, 0, locale)} lengths / ${formatNumber(totalItems, 0, locale)} items`;
 }
 
 function normalizeQuantityInput(value: string) {
@@ -1637,7 +1629,7 @@ export default function Home() {
         </section>
       </section>
 
-      <SummaryBar summary={summary} onOpenRfq={() => setIsRfqOpen(true)} locale={locale} m={m} />
+      <WeightSummary summary={summary} onOpenRfq={() => setIsRfqOpen(true)} locale={locale} m={m} />
 
       {isRfqOpen ? (
         <RfqModal
@@ -3602,97 +3594,6 @@ function WeightCell({
 
 function MissingWeight({ m }: { m: Messages }) {
   return <span className="missing-weight">{m.notices.weightToConfirm}</span>;
-}
-
-function SummaryBar({
-  summary,
-  onOpenRfq,
-  locale,
-  m,
-}: {
-  summary: ReturnType<typeof calculateSummary>;
-  onOpenRfq: () => void;
-  locale: Locale;
-  m: Messages;
-}) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const containerText =
-    summary.containerCount > 0
-      ? `${m.summary.estimated} ${summary.containerCount} × 40HQ，${
-          summary.remainingCapacityTon === 0
-            ? m.summary.capacityReached
-            : `${m.summary.remainingCapacity} ${formatNumber(summary.remainingCapacityTon ?? 0, 2, locale)} ${
-                locale === "zh" ? "吨" : "t"
-              }`
-        }`
-      : `${m.summary.estimated} 0 × 40HQ`;
-
-  return (
-    <footer className={`summary-bar ${isExpanded ? "is-expanded" : ""}`}>
-      <div className="summary-compact">
-        <div className="min-w-0">
-          <p className="text-xs text-blue-100">{m.summary.theoreticalWeight}</p>
-          <p className="truncate text-lg font-bold text-white">
-            {formatTonFromKg(summary.totalWeightKg, locale, m.notices.weightPending)}
-          </p>
-        </div>
-        <button className="primary-button summary-compact-rfq" type="button" onClick={onOpenRfq}>
-          {m.summary.generateRfq}
-        </button>
-        <button className="summary-toggle-button" type="button" onClick={() => setIsExpanded((current) => !current)}>
-          {isExpanded ? m.summary.collapse : m.summary.expand}
-        </button>
-      </div>
-
-      <div className="summary-grid">
-        <SummaryItem label={m.summary.productCount} value={summary.productModuleCount} />
-        <SummaryItem label={m.summary.validSpecRows} value={summary.validRowCount} />
-        <SummaryItem
-          label={m.summary.totalQuantity}
-          value={formatSummaryQuantity(summary.totalQuantityPieces, summary.totalQuantityItems, locale)}
-        />
-        <SummaryItem label={m.summary.theoreticalWeight} value={formatTonFromKg(summary.totalWeightKg, locale, m.notices.weightPending)} strong />
-        <SummaryItem
-          label={m.summary.missingWeight}
-          value={`${summary.missingWeightRowCount} ${m.summary.missingRowsSuffix}`}
-          warning={summary.missingWeightRowCount > 0}
-        />
-        <div className="min-w-0">
-          <p className="text-xs text-blue-100">{m.summary.containerEstimate}</p>
-          <p className="truncate text-base font-bold text-white">{containerText}</p>
-        </div>
-        <button className="primary-button h-12" type="button" onClick={onOpenRfq}>
-          {m.summary.generateRfq}
-        </button>
-      </div>
-      <p className="mt-2 text-xs text-blue-100">
-        {m.container.note}
-        {locale === "zh" ? "。" : " "}
-        {m.container.configuredLoad}：{formatNumber(CONTAINER_40HQ_TON, 1, locale)} {locale === "zh" ? "吨" : "t"} / 40HQ.
-      </p>
-    </footer>
-  );
-}
-
-function SummaryItem({
-  label,
-  value,
-  strong = false,
-  warning = false,
-}: {
-  label: string;
-  value: string | number;
-  strong?: boolean;
-  warning?: boolean;
-}) {
-  return (
-    <div className="min-w-0">
-      <p className="text-xs text-blue-100">{label}</p>
-      <p className={`truncate text-base font-bold ${warning ? "text-orange-300" : strong ? "text-white" : "text-slate-100"}`}>
-        {value}
-      </p>
-    </div>
-  );
 }
 
 function RfqModal({

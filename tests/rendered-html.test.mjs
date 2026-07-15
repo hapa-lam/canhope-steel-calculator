@@ -66,6 +66,8 @@ test("server-renders the CANHOPE steel calculator shell", async () => {
   assert.match(html, /<main\b[^>]*\bclass="[^"]*\bapp-shell\b/i);
   assert.match(html, /CANHOPE/i);
   assert.match(html, /<h1[^>]*>Steel Weight Calculator<\/h1>/i);
+  assert.match(html, /Theoretical Weight/i);
+  assert.match(html, /40HQ Estimate/i);
   assert.match(html, /canhopesteel\.com/i);
   assert.doesNotMatch(html, oldStarterPattern);
   assert.doesNotMatch(html, /info@conhopesteel\.com/i);
