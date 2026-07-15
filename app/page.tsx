@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { contactConfig } from "@/config/contact";
+import { homepageJsonLd } from "@/config/seo";
 import { WeightSummary } from "@/components/calculator/WeightSummary";
 import { productDefinitions } from "@/data/demo/product-definitions";
 import {
@@ -1487,6 +1488,10 @@ export default function Home() {
 
   return (
     <main className="app-shell min-h-screen bg-slate-100 pb-32 text-slate-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageJsonLd) }}
+      />
       <header className="sticky top-0 z-40 border-b border-slate-800 bg-[#0e2a47] text-white shadow-sm">
         <div className="mx-auto flex h-16 max-w-[1500px] items-center justify-between px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
@@ -1548,6 +1553,9 @@ export default function Home() {
             {m.company.description}
             <a className="ml-2 font-semibold text-[#0e5f9f]" href="https://canhopesteel.com" target="_blank">
               canhopesteel.com
+            </a>
+            <a className="ml-2 font-semibold text-[#0e5f9f]" href="/pipe-weight-calculator/">
+              Pipe Weight Calculator
             </a>
           </div>
           <div className="intro-tags">

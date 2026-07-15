@@ -1,5 +1,5 @@
-import { a as require_react, n as getLayoutSegmentContext, o as __toESM } from "./ssr.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/layout-segment-context-Di1gSkyy.js
+import { C as __toESM, r as getLayoutSegmentContext, y as require_react } from "./ssr.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/layout-segment-context-DC6u8OpW.js
 var import_react = /* @__PURE__ */ __toESM(require_react(), 1);
 /**
 * Layout segment context provider.

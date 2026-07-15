@@ -97,7 +97,7 @@ test("emits valid homepage JSON-LD without unsupported claims", async () => {
   assert.doesNotMatch(JSON.stringify(jsonLd), /info@conhopesteel\.com/i);
 });
 
-test("serves crawlable robots and sitemap assets for the current homepage only", async () => {
+test("serves crawlable robots and a sitemap containing launched pages only", async () => {
   const robotsResponse = await render("/robots.txt");
   const robots = await robotsResponse.text();
   const sitemapResponse = await render("/sitemap.xml");
@@ -109,7 +109,43 @@ test("serves crawlable robots and sitemap assets for the current homepage only",
   assert.match(robots, /Sitemap: https:\/\/calculator\.canhopesteel\.com\/sitemap\.xml/i);
   assert.equal(sitemapResponse.status, 200);
   assert.match(sitemap, /<loc>https:\/\/calculator\.canhopesteel\.com\/<\/loc>/i);
-  assert.doesNotMatch(sitemap, /pipe-weight-calculator|square-tube-weight-calculator|container-loading-calculator/i);
+  assert.match(sitemap, /<loc>https:\/\/calculator\.canhopesteel\.com\/pipe-weight-calculator\/<\/loc>/i);
+  assert.doesNotMatch(sitemap, /steel-weight-calculator|square-tube-weight-calculator|container-loading-calculator/i);
+});
+
+test("server-renders the crawlable pipe weight calculator route with its SEO and conversion content", async () => {
+  const response = await render("/pipe-weight-calculator");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+
+  assert.match(html, /<title>Pipe Weight Calculator – kg\/m &amp; Total Weight \| CANHOPE<\/title>/i);
+  assert.match(html, /<meta name="description" content="Calculate steel pipe weight per meter/i);
+  assert.match(html, /<link rel="canonical" href="https:\/\/calculator\.canhopesteel\.com\/pipe-weight-calculator\/"/i);
+  assert.match(html, /<meta property="og:url" content="https:\/\/calculator\.canhopesteel\.com\/pipe-weight-calculator\/"/i);
+  assert.match(html, /<meta name="twitter:card" content="summary"/i);
+  assert.match(html, /<h1[^>]*>Steel Pipe Weight Calculator<\/h1>/i);
+  assert.equal((html.match(/<h1\b/gi) ?? []).length, 1);
+  assert.match(html, /data-testid="pipe-(?:standard|custom)-inputs"/i);
+  assert.match(html, /data-testid="pipe-weight-results"/i);
+  assert.match(html, /Weight per Meter/i);
+  assert.match(html, /Weight per Piece/i);
+  assert.match(html, /Total Weight/i);
+  assert.match(html, /data-testid="pipe-40hq-note"/i);
+  assert.match(html, /https:\/\/canhopesteel\.com\/products\/pipes\/galvanized-pipe\//i);
+  assert.match(html, /Open the Full Steel Calculator &amp; RFQ Builder/i);
+  assert.match(html, /How do you calculate steel pipe weight\?/i);
+  assert.doesNotMatch(html, /info@conhopesteel\.com|localhost|\/Users\/|\/private\//i);
+
+  const schemas = [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gi)].map((match) => JSON.parse(match[1]));
+  assert.ok(schemas.some((schema) => schema["@type"] === "WebApplication"));
+  assert.ok(schemas.some((schema) => schema["@type"] === "FAQPage"));
+  assert.ok(schemas.some((schema) => schema["@type"] === "BreadcrumbList"));
+});
+
+test("homepage SSR includes a normal internal link to the pipe weight calculator", async () => {
+  const response = await render();
+  const html = await response.text();
+  assert.match(html, /<a[^>]+href="\/pipe-weight-calculator\/"[^>]*>\s*Pipe Weight Calculator\s*<\/a>/i);
 });
 
 test("writes the expected production build assets", async () => {

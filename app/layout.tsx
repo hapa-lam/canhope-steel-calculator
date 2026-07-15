@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { homepageJsonLd, seoConfig } from "@/config/seo";
+import { seoConfig } from "@/config/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -60,10 +60,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageJsonLd) }}
-        />
         {children}
       </body>
     </html>
