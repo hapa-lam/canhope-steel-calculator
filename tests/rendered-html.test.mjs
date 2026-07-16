@@ -148,6 +148,30 @@ test("homepage SSR includes a normal internal link to the pipe weight calculator
   assert.match(html, /<a[^>]+href="\/pipe-weight-calculator\/"[^>]*>\s*Pipe Weight Calculator\s*<\/a>/i);
 });
 
+test("homepage and pipe page render the shared CANHOPE brand shell and protected conversion links", async () => {
+  const [homepageResponse, pipeResponse] = await Promise.all([render(), render("/pipe-weight-calculator")]);
+  const [homepage, pipePage] = await Promise.all([homepageResponse.text(), pipeResponse.text()]);
+
+  for (const html of [homepage, pipePage]) {
+    assert.match(html, /Steel Tools Center/i);
+    assert.match(html, /href="https:\/\/canhopesteel\.com\/"[^>]*target="_blank"[^>]*rel="noopener noreferrer"/i);
+    assert.match(html, /src="\/canhope-logo\.png"[^>]*alt="CANHOPE STEEL logo"/i);
+    assert.match(html, /Free steel calculation tools developed by/i);
+    assert.match(html, /Built by Steel Industry Professionals/i);
+    assert.match(html, /© 2026 CANHOPE STEEL\. All rights reserved\./i);
+    assert.match(html, /href="\/"[^>]*>Full Steel Calculator<\/a>/i);
+    assert.match(html, /href="\/pipe-weight-calculator\/"[^>]*>Pipe (?:Calculator|Weight Calculator)<\/a>/i);
+    assert.doesNotMatch(html, /info@conhopesteel\.com|localhost|\/Users\/|\/private\//i);
+  }
+
+  assert.match(pipePage, /Need Steel Pipes for Your Project\?/i);
+  assert.match(pipePage, /href="https:\/\/canhopesteel\.com\/products\/pipes\/galvanized-pipe\/"/i);
+  assert.match(pipePage, /href="https:\/\/canhopesteel\.com\/products\/"/i);
+  assert.match(pipePage, /Build a Multi-Product RFQ/i);
+  assert.match(pipePage, /info@canhopesteel\.com/i);
+  assert.doesNotMatch(`${homepage}${pipePage}`, /steel-weight-calculator\/|square-tube-weight-calculator\/|container-loading-calculator\//i);
+});
+
 test("writes the expected production build assets", async () => {
   const htmlResponse = await render();
   const html = await htmlResponse.text();

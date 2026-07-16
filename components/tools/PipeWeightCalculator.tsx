@@ -205,12 +205,14 @@ export function PipeWeightCalculator() {
       </div>
 
       <div className="mt-6 rounded-lg border border-blue-100 bg-blue-50 p-5">
-        <h2 className="text-lg font-bold text-slate-950">Need a Pipe Quotation?</h2>
-        <p className="mt-1 text-sm leading-6 text-slate-700">Send us the pipe size, wall thickness, length and quantity. We can help confirm specifications, packing and shipment requirements.</p>
+        <h2 className="text-lg font-bold text-slate-950">Need Steel Pipes for Your Project?</h2>
+        <p className="mt-1 text-sm leading-6 text-slate-700">After calculating the theoretical weight, review CANHOPE steel pipe specifications or send us the size, wall thickness, length and quantity for quotation.</p>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <button className="primary-button justify-center" type="button" onClick={openWhatsApp}>Request a Pipe Quote on WhatsApp</button>
-          <button className="secondary-button justify-center" type="button" onClick={openEmail}>Send Requirements by Email</button>
-          <Link className="secondary-button justify-center" href="/">Open Full RFQ Builder</Link>
+          <a className="secondary-button justify-center" href="https://canhopesteel.com/products/pipes/galvanized-pipe/" target="_blank" rel="noopener noreferrer">View Galvanized Steel Pipe</a>
+          <a className="secondary-button justify-center" href="https://canhopesteel.com/products/" target="_blank" rel="noopener noreferrer">Browse CANHOPE Products</a>
+          <Link className="secondary-button justify-center" href="/">Build a Multi-Product RFQ</Link>
+          <button className="primary-button justify-center" type="button" onClick={openWhatsApp}>WhatsApp</button>
+          <button className="secondary-button justify-center" type="button" onClick={openEmail}>Email</button>
         </div>
       </div>
     </section>

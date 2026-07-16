@@ -4,6 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { contactConfig } from "@/config/contact";
 import { homepageJsonLd } from "@/config/seo";
 import { WeightSummary } from "@/components/calculator/WeightSummary";
+import { BrandTrustSection } from "@/components/site/BrandTrustSection";
+import { SiteFooter } from "@/components/site/SiteFooter";
+import { SiteHeader } from "@/components/site/SiteHeader";
 import { productDefinitions } from "@/data/demo/product-definitions";
 import {
   angleSteelSpecifications,
@@ -1492,71 +1495,13 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageJsonLd) }}
       />
-      <header className="sticky top-0 z-40 border-b border-slate-800 bg-[#0e2a47] text-white shadow-sm">
-        <div className="mx-auto flex h-16 max-w-[1500px] items-center justify-between px-4 sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden bg-white">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/canhope-logo.png"
-                alt="CANHOPE STEEL logo"
-                className="h-full w-full object-contain"
-              />
-            </span>
-            <div className="min-w-0">
-              <div className="text-lg font-bold leading-5 tracking-normal">CANHOPE STEEL</div>
-              <div className="truncate text-xs text-blue-100">{m.nav.subtitle}</div>
-            </div>
-          </div>
-
-          <nav className="hidden items-center gap-5 text-sm text-blue-100 md:flex">
-            <div className="flex items-center gap-2">
-              <button className={`nav-link ${locale === "zh" ? "text-white" : ""}`} type="button" onClick={() => switchLocale("zh")}>
-                {m.nav.languageZh}
-              </button>
-              <span className="text-blue-200">|</span>
-              <button className={`nav-link ${locale === "en" ? "text-white" : ""}`} type="button" onClick={() => switchLocale("en")}>
-                {m.nav.languageEn}
-              </button>
-            </div>
-            <button className="nav-link" type="button">
-              {m.nav.instructions}
-            </button>
-            <button className="primary-button" type="button" onClick={() => setIsRfqOpen(true)}>
-              {m.nav.sendRfq} ({summary.validRowCount})
-            </button>
-          </nav>
-
-          <div className="flex shrink-0 items-center gap-2 md:hidden">
-            <button
-              className="mobile-language-button"
-              type="button"
-              onClick={() => switchLocale(locale === "zh" ? "en" : "zh")}
-              aria-label={locale === "zh" ? "Switch to English" : "切换到中文"}
-            >
-              {locale === "zh" ? "EN" : "中文"}
-            </button>
-            <button className="primary-button mobile-rfq-button" type="button" onClick={() => setIsRfqOpen(true)}>
-              {m.nav.mobileRfq} ({summary.validRowCount})
-            </button>
-          </div>
-        </div>
-      </header>
+      <SiteHeader locale={locale} onLanguageChange={switchLocale} />
 
       <section className="mx-auto max-w-[1500px] px-4 py-5 sm:px-6">
         <div className="intro-panel">
-          <div>
-            <p className="text-xl font-bold text-slate-950">{m.company.name}</p>
-            <p className="text-sm font-semibold uppercase text-[#0e5f9f]">{m.company.englishName}</p>
-          </div>
+          <div><p className="text-xl font-bold text-slate-950">{m.company.name}</p><p className="text-sm font-semibold uppercase text-[#0e5f9f]">Steel Tools Center</p></div>
           <div className="max-w-3xl text-sm leading-6 text-slate-600">
-            {m.company.description}
-            <a className="ml-2 font-semibold text-[#0e5f9f]" href="https://canhopesteel.com" target="_blank">
-              canhopesteel.com
-            </a>
-            <a className="ml-2 font-semibold text-[#0e5f9f]" href="/pipe-weight-calculator/">
-              Pipe Weight Calculator
-            </a>
+            Free steel calculation tools developed by <a className="font-semibold text-[#0e5f9f]" href="https://canhopesteel.com/" target="_blank" rel="noopener noreferrer">CANHOPE STEEL</a> for steel buyers, contractors and project procurement teams.
           </div>
           <div className="intro-tags">
             {m.company.tags.map((item) => (
@@ -1638,6 +1583,9 @@ export default function Home() {
       </section>
 
       <WeightSummary summary={summary} onOpenRfq={() => setIsRfqOpen(true)} locale={locale} m={m} />
+
+      <BrandTrustSection />
+      <SiteFooter />
 
       {isRfqOpen ? (
         <RfqModal
