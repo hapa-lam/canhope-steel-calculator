@@ -796,3 +796,41 @@ Unless a task explicitly asks for it, do not:
 - Directly overwrite the production branch
 
 Major changes should use a separate branch first.
+
+---
+
+## 30. WordPress Editorial and Elementor Workflow
+
+For WordPress work, split responsibilities by editor type.
+
+### Gutenberg Articles
+
+Codex may create and edit English WordPress articles in the Gutenberg editor, including:
+
+- Writing original SEO content
+- Adding headings, links, metadata, categories, and tags when requested
+- Creating a new post and saving it as a Draft
+- Leaving the post unpublished unless the user explicitly requests publication
+
+When an article needs a featured image or in-content image, Codex should add the appropriate Gutenberg image block but leave it empty. Codex must not upload, download, generate, or select images unless the user explicitly requests it.
+
+For every empty image block, the completion report must tell the user:
+
+- The recommended image subject and placement
+- Suggested descriptive alt text
+- Suggested filename, title, caption, and media description where useful
+- Any image SEO considerations, without keyword stuffing
+
+### Elementor Pages
+
+The user is responsible for editing existing WordPress pages built with Elementor.
+
+For Elementor page tasks, Codex should inspect the relevant live page when possible and provide a precise implementation brief instead of modifying the page. The brief must include:
+
+- Exact recommended insertion location, using nearby section or CTA labels
+- Ready-to-paste copy
+- Anchor text, destination URL, and required link behavior
+- Any layout, SEO, mobile, or image considerations
+- Elements that must not be changed
+
+Do not attempt Elementor edits when the editor is unstable, content cannot be safely selected, or saving may affect the existing layout. Do not convert an Elementor page to Gutenberg or another editor.
