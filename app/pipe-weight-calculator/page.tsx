@@ -4,10 +4,13 @@ import { BrandTrustSection } from "@/components/site/BrandTrustSection";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { PipeWeightCalculator } from "@/components/tools/PipeWeightCalculator";
+import { calculatorPaths, seoConfig } from "@/config/seo";
 import { calculateRoundSteelPipeKgPerMeter } from "@/lib/calculations";
 import { formatNumber } from "@/lib/format";
 
-const url = "https://calculator.canhopesteel.com/pipe-weight-calculator/";
+export const dynamic = "force-static";
+
+const url = seoConfig.pipeWeightCalculatorUrl;
 const title = "Pipe Weight Calculator – kg/m & Total Weight | CANHOPE";
 const description = "Calculate steel pipe weight per meter, per piece and total order weight using outside diameter, wall thickness, length and quantity. Includes a free 40HQ weight estimate.";
 
@@ -35,7 +38,7 @@ export default function PipeWeightCalculatorPage() {
   const jsonLd = [
     { "@context": "https://schema.org", "@type": "WebApplication", name: "Pipe Weight Calculator", url, description, applicationCategory: "BusinessApplication", operatingSystem: "Any", isAccessibleForFree: true, offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } },
     { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map(([name, text]) => ({ "@type": "Question", name, acceptedAnswer: { "@type": "Answer", text } })) },
-    { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://calculator.canhopesteel.com/" }, { "@type": "ListItem", position: 2, name: "Pipe Weight Calculator", item: url }] },
+    { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: seoConfig.siteUrl }, { "@type": "ListItem", position: 2, name: "Pipe Weight Calculator", item: url }] },
   ];
 
   return (
@@ -47,7 +50,7 @@ export default function PipeWeightCalculatorPage() {
         <ContentSection title="How to Calculate Steel Pipe Weight"><p>For custom black welded steel pipe, the calculator uses the project&apos;s existing theoretical formula: <code className="break-all rounded bg-slate-100 px-1 py-0.5">kg/m = 0.02466 × wall thickness (mm) × (outside diameter (mm) − wall thickness (mm))</code>. Weight per piece is kg/m multiplied by length in meters, and total weight is weight per piece multiplied by quantity. Standard product selections continue to prioritize their confirmed reference weights.</p></ContentSection>
         <ContentSection title="Calculation Example"><p>For a black welded steel pipe with an outside diameter of 48 mm, wall thickness of 2.0 mm, length of 6 m and quantity of 100 pieces, the existing production calculation returns <strong>{formatNumber(exampleKgPerMeter, 5, "en")} kg/m</strong>, <strong>{formatNumber(examplePieceWeight, 5, "en")} kg per piece</strong>, and <strong>{formatNumber(exampleTotalWeight, 2, "en")} kg total</strong>.</p></ContentSection>
         <ContentSection title="Theoretical Weight vs Actual Weight"><p>The calculator provides theoretical weight based on nominal dimensions. Actual pipe weight may vary because of wall thickness tolerance, outside diameter tolerance, steel density, zinc coating, manufacturing tolerance and measured pipe length.</p><p className="mt-3">For purchasing and shipment planning, confirm the final unit weight, mill tolerance and packing details with the supplier.</p></ContentSection>
-        <ContentSection title="Related Products and Resources"><ul className="space-y-3 font-semibold text-[#0e5f9f]"><li><a href="https://canhopesteel.com/products/pipes/galvanized-pipe/">View Galvanized Steel Pipe Specifications</a></li><li><a href="https://canhopesteel.com/fire-sprinkler-pipe/">Read the Fire Sprinkler Pipe Guide</a></li><li><a href="https://canhopesteel.com/galvanized-pipe-size-chart/">View the Galvanized Pipe Size and Weight Chart</a></li><li><a href="https://canhopesteel.com/products/">Browse Steel and Fire Protection Products</a></li><li><Link href="/">Open the Full Steel Calculator &amp; RFQ Builder</Link></li></ul></ContentSection>
+        <ContentSection title="Related Products and Resources"><ul className="space-y-3 font-semibold text-[#0e5f9f]"><li><a href="https://canhopesteel.com/products/pipes/galvanized-pipe/">View Galvanized Steel Pipe Specifications</a></li><li><a href="https://canhopesteel.com/fire-sprinkler-pipe/">Read the Fire Sprinkler Pipe Guide</a></li><li><a href="https://canhopesteel.com/galvanized-pipe-size-chart/">View the Galvanized Pipe Size and Weight Chart</a></li><li><a href="https://canhopesteel.com/products/">Browse Steel and Fire Protection Products</a></li><li><Link href={calculatorPaths.home}>Open the Full Steel Calculator &amp; RFQ Builder</Link></li></ul></ContentSection>
         <ContentSection title="Pipe Weight Calculator FAQ"><div className="space-y-5">{faqs.map(([question, answer]) => <article key={question}><h3 className="text-lg font-bold text-slate-950">{question}</h3><p className="mt-2">{answer}</p></article>)}</div></ContentSection>
       </div>
       <BrandTrustSection />

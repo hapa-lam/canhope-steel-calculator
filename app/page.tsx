@@ -86,6 +86,10 @@ import type {
   SteelPipeProductType,
 } from "@/types/materials";
 
+// Both calculator routes are intentionally static shells; material data and
+// browser-only preferences hydrate after the HTML has been served.
+export const dynamic = "force-static";
+
 type RowUpdates = Record<string, string | number | boolean | null | undefined>;
 type LegacyMaterialRow =
   | MaterialRow

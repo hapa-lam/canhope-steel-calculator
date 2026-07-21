@@ -14,6 +14,7 @@ const { d1, r2 } = hostingConfig;
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 const isHostingerBuild = process.env.NITRO_PRESET === "node";
+const isStaticSubdirectoryBuild = process.env.STATIC_SUBDIRECTORY_BUILD === "1";
 const tailwindCssEntry = fileURLToPath(
   new URL("./node_modules/tailwindcss/index.css", import.meta.url),
 );
@@ -58,18 +59,26 @@ export default defineConfig(async () => {
       );
   const plugins = isHostingerBuild
     ? [vinext(), nitro(), sites()]
+    : isStaticSubdirectoryBuild
+      ? [vinext(), sites()]
     : [vinext(), sites(), cloudflarePlugin];
 
   return {
     server: isCodexSeatbeltSandbox
       ? { watch: { useFsEvents: false, usePolling: true } }
       : undefined,
-    css: isHostingerBuild
+    css: isHostingerBuild || isStaticSubdirectoryBuild
       ? { postcss: { plugins: [tailwindcss()] } }
       : undefined,
-    resolve: isHostingerBuild
+    resolve: isHostingerBuild || isStaticSubdirectoryBuild
       ? { alias: { tailwindcss: tailwindCssEntry } }
       : undefined,
+    define: {
+      "process.env.STATIC_SUBDIRECTORY_BUILD": JSON.stringify(
+        isStaticSubdirectoryBuild ? "1" : "",
+      ),
+    },
+    base: isStaticSubdirectoryBuild ? "/steel-calculator/" : undefined,
     plugins,
   };
 });

@@ -2,32 +2,47 @@ import * as __viteRscAsyncHooks from "node:async_hooks";
 import { AsyncLocalStorage as AsyncLocalStorage$1 } from "node:async_hooks";
 //#region node_modules/.nitro/vite/services/ssr/__vite_rsc_assets_manifest.js
 var __vite_rsc_assets_manifest_default = {
-	"bootstrapScriptContent": "import(\"/assets/index-DuyU57sN.js\")",
+	"bootstrapScriptContent": "import(\"/assets/index-BVgDWJD0.js\")",
 	"clientReferenceDeps": {
 		"6efdf509a785": {
 			"js": [
-				"/assets/page-BQ2cvlVi.js",
+				"/assets/page-BXv5wmGm.js",
 				"/assets/rolldown-runtime-S-ySWqyJ.js",
-				"/assets/calculations-Nz-5GVWe.js",
+				"/assets/SiteHeader-D1i9UHRd.js",
+				"/assets/seo-BWlCoZqB.js",
 				"/assets/framework-CXnKph_e.js",
-				"/assets/index-DuyU57sN.js"
+				"/assets/link-DkNoas2H.js",
+				"/assets/index-BVgDWJD0.js",
+				"/assets/calculations-KxgWkSMf.js"
+			],
+			"css": []
+		},
+		"3ca4db5c3a22": {
+			"js": [
+				"/assets/SiteHeader-D1i9UHRd.js",
+				"/assets/seo-BWlCoZqB.js",
+				"/assets/framework-CXnKph_e.js",
+				"/assets/rolldown-runtime-S-ySWqyJ.js",
+				"/assets/link-DkNoas2H.js",
+				"/assets/index-BVgDWJD0.js"
 			],
 			"css": []
 		},
 		"d53a144fc609": {
 			"js": [
-				"/assets/PipeWeightCalculator-BAa0XSFw.js",
+				"/assets/PipeWeightCalculator-CqYJf6hQ.js",
 				"/assets/rolldown-runtime-S-ySWqyJ.js",
-				"/assets/calculations-Nz-5GVWe.js",
+				"/assets/calculations-KxgWkSMf.js",
+				"/assets/seo-BWlCoZqB.js",
 				"/assets/framework-CXnKph_e.js",
-				"/assets/link-Cuk41nCt.js",
-				"/assets/index-DuyU57sN.js"
+				"/assets/link-DkNoas2H.js",
+				"/assets/index-BVgDWJD0.js"
 			],
 			"css": []
 		},
 		"fa2fcf37606f": {
 			"js": [
-				"/assets/index-DuyU57sN.js",
+				"/assets/index-BVgDWJD0.js",
 				"/assets/rolldown-runtime-S-ySWqyJ.js",
 				"/assets/framework-CXnKph_e.js"
 			],
@@ -35,25 +50,25 @@ var __vite_rsc_assets_manifest_default = {
 		},
 		"3c1a6b559290": {
 			"js": [
-				"/assets/layout-segment-context-CLBrLlir.js",
+				"/assets/layout-segment-context-B7cqy38h.js",
 				"/assets/rolldown-runtime-S-ySWqyJ.js",
-				"/assets/index-DuyU57sN.js",
+				"/assets/index-BVgDWJD0.js",
 				"/assets/framework-CXnKph_e.js"
 			],
 			"css": []
 		},
 		"c2747888630f": {
 			"js": [
-				"/assets/link-Cuk41nCt.js",
+				"/assets/link-DkNoas2H.js",
 				"/assets/rolldown-runtime-S-ySWqyJ.js",
-				"/assets/index-DuyU57sN.js",
+				"/assets/index-BVgDWJD0.js",
 				"/assets/framework-CXnKph_e.js"
 			],
 			"css": []
 		},
 		"752415709cd7": {
 			"js": [
-				"/assets/index-DuyU57sN.js",
+				"/assets/index-BVgDWJD0.js",
 				"/assets/rolldown-runtime-S-ySWqyJ.js",
 				"/assets/framework-CXnKph_e.js"
 			],
@@ -62,7 +77,7 @@ var __vite_rsc_assets_manifest_default = {
 	},
 	"serverResources": { "app/layout.tsx": {
 		"js": [],
-		"css": ["/assets/index-N0XkKjIa.css"]
+		"css": ["/assets/index-D8xe-zx-.css"]
 	} }
 };
 //#endregion
@@ -11620,16 +11635,27 @@ function createFromReadableStream(stream, options = {}) {
 }
 var client_references_default = {
 	"3c1a6b559290": async () => {
-		const m = await import("./layout-segment-context-DC6u8OpW.mjs");
+		const m = await import("./layout-segment-context-BmmBzSku.mjs");
 		return { get "LayoutSegmentProvider"() {
 			return m["LayoutSegmentProvider"];
 		} };
 	},
-	"6efdf509a785": async () => {
-		const m = await import("./page-Bpuak4Uz.mjs");
-		return { get "default"() {
-			return m["default"];
+	"3ca4db5c3a22": async () => {
+		const m = await import("./SiteHeader-5dwCL4Lr.mjs");
+		return { get "SiteHeader"() {
+			return m["SiteHeader"];
 		} };
+	},
+	"6efdf509a785": async () => {
+		const m = await import("./page-D07zKmQP.mjs");
+		return {
+			get "default"() {
+				return m["default"];
+			},
+			get "dynamic"() {
+				return m["dynamic"];
+			}
+		};
 	},
 	"752415709cd7": async () => {
 		const m = await Promise.resolve().then(() => slot_exports);
@@ -11646,19 +11672,19 @@ var client_references_default = {
 		};
 	},
 	"c2747888630f": async () => {
-		const m = await import("./link-CKsKfXEL.mjs");
+		const m = await import("./link-Ds33me9j.mjs").then((n) => n.n);
 		return { get "default"() {
 			return m["default"];
 		} };
 	},
 	"d53a144fc609": async () => {
-		const m = await import("./PipeWeightCalculator-G2YYGOjz.mjs");
+		const m = await import("./PipeWeightCalculator-DMm-2lgs.mjs");
 		return { get "PipeWeightCalculator"() {
 			return m["PipeWeightCalculator"];
 		} };
 	},
 	"fa2fcf37606f": async () => {
-		const m = await import("./error-boundary-DBa3jFwC.mjs");
+		const m = await import("./error-boundary-BUNO2apq.mjs");
 		return {
 			get "ErrorBoundary"() {
 				return m["ErrorBoundary"];
@@ -11836,4 +11862,4 @@ var app_ssr_entry_default = { async fetch(request) {
 	return new Response(String(result), { status: 200 });
 } };
 //#endregion
-export { __toESM as C, stripBasePath as S, isDangerousScheme as _, getPrefetchedUrls as a, VINEXT_MOUNTED_SLOTS_HEADER as b, usePathname as c, createRscRequestUrl as d, app_ssr_entry_default as default, isHashOnlyBrowserUrlChange as f, withBasePath as g, toSameOriginAppPath as h, handleSsr, getMountedSlotsHeader as i, useRouter as l, toBrowserNavigationHref as m, getCurrentInterceptionContext as n, navigateClientSide as o, resolveRelativeHref as p, getLayoutSegmentContext as r, prefetchRscResponse as s, require_jsx_runtime as t, createRscRequestHeaders as u, AppElementsWire as v, hasBasePath as x, require_react as y };
+export { __exportAll as C, stripBasePath as S, isDangerousScheme as _, getPrefetchedUrls as a, VINEXT_MOUNTED_SLOTS_HEADER as b, usePathname as c, createRscRequestUrl as d, app_ssr_entry_default as default, isHashOnlyBrowserUrlChange as f, withBasePath as g, toSameOriginAppPath as h, handleSsr, getMountedSlotsHeader as i, useRouter as l, toBrowserNavigationHref as m, getCurrentInterceptionContext as n, navigateClientSide as o, resolveRelativeHref as p, getLayoutSegmentContext as r, prefetchRscResponse as s, require_jsx_runtime as t, createRscRequestHeaders as u, AppElementsWire as v, __toESM as w, hasBasePath as x, require_react as y };

@@ -1,7 +1,8 @@
-import { C as __toESM, t as require_jsx_runtime, y as require_react } from "./ssr.mjs";
-import { E as getGalvanizedSheetPipeThicknessId, S as getBlackSteelPipeThicknessId, T as getGalvanizedPipeThicknessId, a as calculateRow, c as contactConfig, l as estimate40HQ, m as formatNumber, r as blackSteelPipeData, v as galvanizedPipeData, y as galvanizedSheetPipeData } from "./calculations-cdk_LKF7.mjs";
-import Link from "./link-CKsKfXEL.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/PipeWeightCalculator-G2YYGOjz.js
+import { t as require_jsx_runtime, w as __toESM, y as require_react } from "./ssr.mjs";
+import { t as calculatorPaths } from "./seo-buLpr6UB.mjs";
+import { E as getGalvanizedSheetPipeThicknessId, S as getBlackSteelPipeThicknessId, T as getGalvanizedPipeThicknessId, a as calculateRow, c as contactConfig, l as estimate40HQ, m as formatNumber, r as blackSteelPipeData, v as galvanizedPipeData, y as galvanizedSheetPipeData } from "./calculations-ZcKnzvwQ.mjs";
+import { t as Link } from "./link-Ds33me9j.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/PipeWeightCalculator-DMm-2lgs.js
 var import_react = /* @__PURE__ */ __toESM(require_react(), 1);
 var import_jsx_runtime = require_jsx_runtime();
 var productOptions = [
@@ -285,31 +286,45 @@ function PipeWeightCalculator() {
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
 						className: "text-lg font-bold text-slate-950",
-						children: "Need a Pipe Quotation?"
+						children: "Need Steel Pipes for Your Project?"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "mt-1 text-sm leading-6 text-slate-700",
-						children: "Send us the pipe size, wall thickness, length and quantity. We can help confirm specifications, packing and shipment requirements."
+						children: "After calculating the theoretical weight, review CANHOPE steel pipe specifications or send us the size, wall thickness, length and quantity for quotation."
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap",
 						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+								className: "secondary-button justify-center",
+								href: "https://canhopesteel.com/products/pipes/galvanized-pipe/",
+								target: "_blank",
+								rel: "noopener noreferrer",
+								children: "View Galvanized Steel Pipe"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+								className: "secondary-button justify-center",
+								href: "https://canhopesteel.com/products/",
+								target: "_blank",
+								rel: "noopener noreferrer",
+								children: "Browse CANHOPE Products"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+								className: "secondary-button justify-center",
+								href: calculatorPaths.home,
+								children: "Build a Multi-Product RFQ"
+							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 								className: "primary-button justify-center",
 								type: "button",
 								onClick: openWhatsApp,
-								children: "Request a Pipe Quote on WhatsApp"
+								children: "WhatsApp"
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 								className: "secondary-button justify-center",
 								type: "button",
 								onClick: openEmail,
-								children: "Send Requirements by Email"
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
-								className: "secondary-button justify-center",
-								href: "/",
-								children: "Open Full RFQ Builder"
+								children: "Email"
 							})
 						]
 					})

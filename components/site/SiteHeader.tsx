@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { calculatorPaths } from "@/config/seo";
 import type { Locale } from "@/i18n";
 
 type SiteHeaderProps = {
@@ -23,13 +24,13 @@ export function SiteHeader({ locale, onLanguageChange }: SiteHeaderProps) {
         <a className="flex min-w-0 items-center gap-2" href="https://canhopesteel.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit the CANHOPE STEEL official website">
           {/* The original supplied logo is displayed without filters, cropping, or alteration. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/canhope-logo.png" alt="CANHOPE STEEL logo" className="h-8 w-8 shrink-0 object-contain sm:h-10 sm:w-10" />
+          <img src={calculatorPaths.asset("/canhope-logo.png")} alt="CANHOPE STEEL logo" className="h-8 w-8 shrink-0 object-contain sm:h-10 sm:w-10" />
           <span className="hidden text-xs font-semibold tracking-wide text-slate-500 sm:inline">Steel Tools Center</span>
         </a>
 
         <nav className="ml-auto flex min-w-0 items-center gap-3 text-xs font-semibold sm:gap-5 sm:text-sm" aria-label="Steel tools navigation">
-          <Link className="hidden whitespace-nowrap text-slate-600 hover:text-[#0e2a47] md:inline" href="/">Full Steel Calculator</Link>
-          <Link className="whitespace-nowrap text-slate-600 hover:text-[#0e2a47]" href="/pipe-weight-calculator/">Pipe Calculator</Link>
+          <Link className="hidden whitespace-nowrap text-slate-600 hover:text-[#0e2a47] md:inline" href={calculatorPaths.home}>Full Steel Calculator</Link>
+          <Link className="whitespace-nowrap text-slate-600 hover:text-[#0e2a47]" href={calculatorPaths.pipeWeightCalculator}>Pipe Calculator</Link>
           <a className="hidden whitespace-nowrap text-slate-600 hover:text-[#0e2a47] md:inline" href="https://canhopesteel.com/products/" target="_blank" rel="noopener noreferrer">Products</a>
           {languageControl}
         </nav>

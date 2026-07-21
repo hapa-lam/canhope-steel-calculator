@@ -1,51 +1,10 @@
-import { C as __toESM, t as require_jsx_runtime, y as require_react } from "./ssr.mjs";
-import { A as groovedFittingProducts, C as getFirstGroovedFittingRecord, D as getGalvanizedSquareRectangularTubeThicknessId, E as getGalvanizedSheetPipeThicknessId, M as iBeamData, N as preGalvanizedSquareRectangularTubeData, O as getGroovedFittingRecordId, P as roundSteelBarData, S as getBlackSteelPipeThicknessId, T as getGalvanizedPipeThicknessId, _ as formatUnitWeightLabel, a as calculateRow, b as galvanizedSquareRectangularTubeData, c as contactConfig, d as flatSteelBarData, f as formatKg, g as formatTonFromKg, h as formatQuantity, i as calculateModuleSubtotal, j as groovedFittingRecords, k as getPreGalvanizedSquareRectangularTubeThicknessId, m as formatNumber, n as angleSteelSpecifications, o as calculateSummary, p as formatLength, r as blackSteelPipeData, s as channelSteelData, t as CONTAINER_40HQ_TON, u as findGroovedFittingRecord, v as galvanizedPipeData, w as getFlatSteelBarThicknessId, x as getAngleSteelThicknessId, y as galvanizedSheetPipeData } from "./calculations-cdk_LKF7.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/page-Bpuak4Uz.js
+import { t as require_jsx_runtime, w as __toESM, y as require_react } from "./ssr.mjs";
+import { n as homepageJsonLd, t as calculatorPaths } from "./seo-buLpr6UB.mjs";
+import { A as groovedFittingProducts, C as getFirstGroovedFittingRecord, D as getGalvanizedSquareRectangularTubeThicknessId, E as getGalvanizedSheetPipeThicknessId, M as iBeamData, N as preGalvanizedSquareRectangularTubeData, O as getGroovedFittingRecordId, P as roundSteelBarData, S as getBlackSteelPipeThicknessId, T as getGalvanizedPipeThicknessId, _ as formatUnitWeightLabel, a as calculateRow, b as galvanizedSquareRectangularTubeData, c as contactConfig, d as flatSteelBarData, f as formatKg, g as formatTonFromKg, h as formatQuantity, i as calculateModuleSubtotal, j as groovedFittingRecords, k as getPreGalvanizedSquareRectangularTubeThicknessId, m as formatNumber, n as angleSteelSpecifications, o as calculateSummary, p as formatLength, r as blackSteelPipeData, s as channelSteelData, t as CONTAINER_40HQ_TON, u as findGroovedFittingRecord, v as galvanizedPipeData, w as getFlatSteelBarThicknessId, x as getAngleSteelThicknessId, y as galvanizedSheetPipeData } from "./calculations-ZcKnzvwQ.mjs";
+import { t as Link } from "./link-Ds33me9j.mjs";
+import { SiteHeader } from "./SiteHeader-5dwCL4Lr.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/page-D07zKmQP.js
 var import_react = /* @__PURE__ */ __toESM(require_react(), 1);
-var seoConfig = {
-	siteName: "CANHOPE Steel Calculator",
-	brandName: "CANHOPE STEEL",
-	siteUrl: "https://calculator.canhopesteel.com/",
-	mainWebsiteUrl: "https://canhopesteel.com/",
-	defaultLocale: "en_US",
-	defaultLanguage: "en",
-	title: "Free Steel Weight Calculator & RFQ Builder | CANHOPE",
-	description: "Select steel products, sizes, wall thicknesses and quantities to calculate theoretical weight, estimate 40HQ capacity by weight, and prepare an RFQ.",
-	logoPath: "/canhope-logo.png",
-	twitterCard: "summary"
-};
-var homepageJsonLd = {
-	"@context": "https://schema.org",
-	"@graph": [{
-		"@type": "WebSite",
-		name: seoConfig.siteName,
-		url: seoConfig.siteUrl,
-		inLanguage: seoConfig.defaultLanguage,
-		publisher: {
-			"@type": "Organization",
-			name: seoConfig.brandName,
-			url: seoConfig.mainWebsiteUrl,
-			logo: `${seoConfig.siteUrl.replace(/\/$/, "")}${seoConfig.logoPath}`
-		}
-	}, {
-		"@type": "WebApplication",
-		name: seoConfig.title,
-		url: seoConfig.siteUrl,
-		description: seoConfig.description,
-		inLanguage: seoConfig.defaultLanguage,
-		applicationCategory: "BusinessApplication",
-		operatingSystem: "Any",
-		offers: {
-			"@type": "Offer",
-			price: "0"
-		},
-		publisher: {
-			"@type": "Organization",
-			name: seoConfig.brandName,
-			url: seoConfig.mainWebsiteUrl
-		}
-	}]
-};
 var import_jsx_runtime = require_jsx_runtime();
 function ContainerEstimate({ children, action, containerCount, remainingCapacityTon, configuredLoadTon, locale, m }) {
 	const containerText = containerCount > 0 ? `${m.summary.estimated} ${containerCount} × 40HQ，${remainingCapacityTon === 0 ? m.summary.capacityReached : `${m.summary.remainingCapacity} ${formatNumber(remainingCapacityTon ?? 0, 2, locale)} ${locale === "zh" ? "吨" : "t"}`}` : `${m.summary.estimated} 0 × 40HQ`;
@@ -163,6 +122,135 @@ function SummaryItem({ label, value, strong = false, warning = false }) {
 function formatSummaryQuantity(totalLengths, totalItems, locale) {
 	if (locale === "zh") return `${formatQuantity(totalLengths, "支", locale)} / ${formatQuantity(totalItems, "件", locale)}`;
 	return `${formatNumber(totalLengths, 0, locale)} lengths / ${formatNumber(totalItems, 0, locale)} items`;
+}
+function BrandTrustSection() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+		className: "mx-auto max-w-[1500px] px-4 pb-8 sm:px-6",
+		"aria-labelledby": "brand-trust-title",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-7",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+					id: "brand-trust-title",
+					className: "text-2xl font-bold text-slate-950",
+					children: "Built by Steel Industry Professionals"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "mt-3 max-w-3xl leading-7 text-slate-600",
+					children: "This calculator is developed by CANHOPE STEEL, a steel and fire protection materials supplier supporting contractors, distributors and project buyers."
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+					className: "mt-5 grid gap-3 sm:grid-cols-2",
+					role: "list",
+					children: [
+						"Steel Experience Since 1993",
+						"30,000+ m² Factory & Warehouse Facilities",
+						"Approx. 30,000 Tons Inventory",
+						"Project & Mixed-Container Support"
+					].map((point) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", {
+						className: "rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700",
+						children: point
+					}, point))
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+					className: "mt-5 text-sm font-semibold text-[#0e5f9f]",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+							href: "https://canhopesteel.com/",
+							target: "_blank",
+							rel: "noopener noreferrer",
+							children: "Visit CANHOPE STEEL"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "px-2 text-slate-300",
+							children: "|"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+							href: "https://canhopesteel.com/products/",
+							target: "_blank",
+							rel: "noopener noreferrer",
+							children: "Explore Products"
+						})
+					]
+				})
+			]
+		})
+	});
+}
+function SiteFooter() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("footer", {
+		className: "border-t border-slate-200 bg-white text-slate-600",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "mx-auto grid max-w-[1500px] gap-7 px-4 py-9 sm:grid-cols-2 sm:px-6 lg:grid-cols-4",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "font-bold text-slate-950",
+					children: "CANHOPE STEEL"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "mt-2 text-sm leading-6",
+					children: "Steel and fire protection material solutions for contractors, distributors and project buyers."
+				})] }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "font-bold text-slate-950",
+					children: "Tools"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mt-2 space-y-2 text-sm",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+						className: "block hover:text-[#0e5f9f]",
+						href: calculatorPaths.home,
+						children: "Full Steel Calculator"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+						className: "block hover:text-[#0e5f9f]",
+						href: calculatorPaths.pipeWeightCalculator,
+						children: "Pipe Weight Calculator"
+					})]
+				})] }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "font-bold text-slate-950",
+					children: "Company"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mt-2 space-y-2 text-sm",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+						className: "block hover:text-[#0e5f9f]",
+						href: "https://canhopesteel.com/",
+						target: "_blank",
+						rel: "noopener noreferrer",
+						children: "Official Website"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+						className: "block hover:text-[#0e5f9f]",
+						href: "https://canhopesteel.com/products/",
+						target: "_blank",
+						rel: "noopener noreferrer",
+						children: "Products"
+					})]
+				})] }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "font-bold text-slate-950",
+					children: "Contact"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "mt-2 space-y-2 text-sm",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+							className: "block hover:text-[#0e5f9f]",
+							href: `https://wa.me/${contactConfig.whatsapp.linkNumber}`,
+							target: "_blank",
+							rel: "noopener noreferrer",
+							children: "WhatsApp"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+							className: "block hover:text-[#0e5f9f]",
+							href: `mailto:${contactConfig.email}`,
+							children: "Email"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: contactConfig.email })
+					]
+				})] })
+			]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "border-t border-slate-100 px-4 py-4 text-center text-xs text-slate-500",
+			children: "© 2026 CANHOPE STEEL. All rights reserved."
+		})]
+	});
 }
 var productDefinitions = [
 	{
@@ -622,6 +710,7 @@ function formatGalvanizedSquareRectangularTubeSpec(spec) {
 function formatAngleSteelSpec(spec) {
 	return `${spec.legAMm} × ${spec.legBMm} mm`;
 }
+var dynamic = "force-static";
 var STORAGE_KEY = "canhope-steel-calculator-material-list";
 var LOCALE_STORAGE_KEY = "steel-calculator-locale";
 var pageTitles = {
@@ -1487,95 +1576,9 @@ function Home() {
 				type: "application/ld+json",
 				dangerouslySetInnerHTML: { __html: JSON.stringify(homepageJsonLd) }
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("header", {
-				className: "sticky top-0 z-40 border-b border-slate-800 bg-[#0e2a47] text-white shadow-sm",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "mx-auto flex h-16 max-w-[1500px] items-center justify-between px-4 sm:px-6",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex min-w-0 items-center gap-3",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: "flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden bg-white",
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-									src: "/canhope-logo.png",
-									alt: "CANHOPE STEEL logo",
-									className: "h-full w-full object-contain"
-								})
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "min-w-0",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									className: "text-lg font-bold leading-5 tracking-normal",
-									children: "CANHOPE STEEL"
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									className: "truncate text-xs text-blue-100",
-									children: m.nav.subtitle
-								})]
-							})]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("nav", {
-							className: "hidden items-center gap-5 text-sm text-blue-100 md:flex",
-							children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "flex items-center gap-2",
-									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-											className: `nav-link ${locale === "zh" ? "text-white" : ""}`,
-											type: "button",
-											onClick: () => switchLocale("zh"),
-											children: m.nav.languageZh
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-											className: "text-blue-200",
-											children: "|"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-											className: `nav-link ${locale === "en" ? "text-white" : ""}`,
-											type: "button",
-											onClick: () => switchLocale("en"),
-											children: m.nav.languageEn
-										})
-									]
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-									className: "nav-link",
-									type: "button",
-									children: m.nav.instructions
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-									className: "primary-button",
-									type: "button",
-									onClick: () => setIsRfqOpen(true),
-									children: [
-										m.nav.sendRfq,
-										" (",
-										summary.validRowCount,
-										")"
-									]
-								})
-							]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex shrink-0 items-center gap-2 md:hidden",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
-								className: "mobile-language-button",
-								type: "button",
-								onClick: () => switchLocale(locale === "zh" ? "en" : "zh"),
-								"aria-label": locale === "zh" ? "Switch to English" : "切换到中文",
-								children: locale === "zh" ? "EN" : "中文"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-								className: "primary-button mobile-rfq-button",
-								type: "button",
-								onClick: () => setIsRfqOpen(true),
-								children: [
-									m.nav.mobileRfq,
-									" (",
-									summary.validRowCount,
-									")"
-								]
-							})]
-						})
-					]
-				})
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SiteHeader, {
+				locale,
+				onLanguageChange: switchLocale
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
 				className: "mx-auto max-w-[1500px] px-4 py-5 sm:px-6",
@@ -1587,23 +1590,20 @@ function Home() {
 							children: m.company.name
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 							className: "text-sm font-semibold uppercase text-[#0e5f9f]",
-							children: m.company.englishName
+							children: "Steel Tools Center"
 						})] }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							className: "max-w-3xl text-sm leading-6 text-slate-600",
 							children: [
-								m.company.description,
+								"Free steel calculation tools developed by ",
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-									className: "ml-2 font-semibold text-[#0e5f9f]",
-									href: "https://canhopesteel.com",
+									className: "font-semibold text-[#0e5f9f]",
+									href: "https://canhopesteel.com/",
 									target: "_blank",
-									children: "canhopesteel.com"
+									rel: "noopener noreferrer",
+									children: "CANHOPE STEEL"
 								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-									className: "ml-2 font-semibold text-[#0e5f9f]",
-									href: "/pipe-weight-calculator/",
-									children: "Pipe Weight Calculator"
-								})
+								" for steel buyers, contractors and project procurement teams."
 							]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -1685,6 +1685,8 @@ function Home() {
 				locale,
 				m
 			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrandTrustSection, {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SiteFooter, {}),
 			isRfqOpen ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RfqModal, {
 				customer,
 				setCustomer,
@@ -3447,4 +3449,4 @@ function CustomerInput({ label, value, onChange }) {
 	});
 }
 //#endregion
-export { Home as default };
+export { Home as default, dynamic };

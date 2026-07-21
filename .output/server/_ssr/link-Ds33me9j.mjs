@@ -1,5 +1,5 @@
-import { C as __toESM, S as stripBasePath, _ as isDangerousScheme, a as getPrefetchedUrls, b as VINEXT_MOUNTED_SLOTS_HEADER, d as createRscRequestUrl, g as withBasePath$1, h as toSameOriginAppPath, i as getMountedSlotsHeader, m as toBrowserNavigationHref, n as getCurrentInterceptionContext, o as navigateClientSide, p as resolveRelativeHref, s as prefetchRscResponse, t as require_jsx_runtime, u as createRscRequestHeaders, v as AppElementsWire, x as hasBasePath, y as require_react } from "./ssr.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/link-CKsKfXEL.js
+import { C as __exportAll, S as stripBasePath, _ as isDangerousScheme, a as getPrefetchedUrls, b as VINEXT_MOUNTED_SLOTS_HEADER, d as createRscRequestUrl, g as withBasePath$1, h as toSameOriginAppPath, i as getMountedSlotsHeader, m as toBrowserNavigationHref, n as getCurrentInterceptionContext, o as navigateClientSide, p as resolveRelativeHref, s as prefetchRscResponse, t as require_jsx_runtime, u as createRscRequestHeaders, v as AppElementsWire, w as __toESM, x as hasBasePath, y as require_react } from "./ssr.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/link-Ds33me9j.js
 var PATH_DELIMITER_REGEX = /([/#?\\]|%(2f|23|3f|5c))/gi;
 function encodePathDelimiters(segment) {
 	return segment.replace(PATH_DELIMITER_REGEX, (char) => encodeURIComponent(char));
@@ -355,6 +355,11 @@ function getLinkPrefetchHref(input) {
 function isAbsoluteOrProtocolRelative(href) {
 	return href.startsWith("http://") || href.startsWith("https://") || href.startsWith("//");
 }
+var link_exports = /* @__PURE__ */ __exportAll({
+	canAutoPrefetchFullAppRoute: () => canAutoPrefetchFullAppRoute,
+	default: () => Link,
+	resolveLinkPrefetchMode: () => resolveLinkPrefetchMode
+});
 var import_react = /* @__PURE__ */ __toESM(require_react(), 1);
 var import_jsx_runtime = require_jsx_runtime();
 /**
@@ -610,7 +615,7 @@ var Link = (0, import_react.forwardRef)(function Link({ href, as, replace = fals
 			});
 			return;
 		} else try {
-			const Router = (await import("./router-omtJUpMB.mjs")).default;
+			const Router = (await import("./router-DElL0Hd6.mjs")).default;
 			if (replace) await Router.replace(absoluteHref, void 0, { scroll });
 			else await Router.push(absoluteHref, void 0, { scroll });
 		} catch {
@@ -643,4 +648,4 @@ var Link = (0, import_react.forwardRef)(function Link({ href, as, replace = fals
 	});
 });
 //#endregion
-export { getDomainLocaleUrl as a, Link as default, addLocalePrefix as i, appendSearchParamsToUrl as n, urlQueryToSearchParams as r, addQueryParam as t };
+export { urlQueryToSearchParams as a, appendSearchParamsToUrl as i, link_exports as n, addLocalePrefix as o, addQueryParam as r, getDomainLocaleUrl as s, Link as t };

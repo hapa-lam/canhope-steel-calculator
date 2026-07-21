@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { contactConfig } from "@/config/contact";
+import { calculatorPaths } from "@/config/seo";
 import {
   blackSteelPipeData,
   getBlackSteelPipeThicknessId,
@@ -210,7 +211,7 @@ export function PipeWeightCalculator() {
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <a className="secondary-button justify-center" href="https://canhopesteel.com/products/pipes/galvanized-pipe/" target="_blank" rel="noopener noreferrer">View Galvanized Steel Pipe</a>
           <a className="secondary-button justify-center" href="https://canhopesteel.com/products/" target="_blank" rel="noopener noreferrer">Browse CANHOPE Products</a>
-          <Link className="secondary-button justify-center" href="/">Build a Multi-Product RFQ</Link>
+          <Link className="secondary-button justify-center" href={calculatorPaths.home}>Build a Multi-Product RFQ</Link>
           <button className="primary-button justify-center" type="button" onClick={openWhatsApp}>WhatsApp</button>
           <button className="secondary-button justify-center" type="button" onClick={openEmail}>Email</button>
         </div>

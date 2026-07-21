@@ -1,10 +1,11 @@
-//#region node_modules/.nitro/vite/services/ssr/assets/calculations-cdk_LKF7.js
+import { t as calculatorPaths } from "./seo-buLpr6UB.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/calculations-ZcKnzvwQ.js
 var contactConfig = {
 	email: "info@canhopesteel.com",
 	wechat: {
 		contactName: "Hapa Lam",
 		searchPhoneNumber: "18027418524",
-		qrCodePath: "/images/wechat-qrcode.png"
+		qrCodePath: calculatorPaths.asset("/images/wechat-qrcode.png")
 	},
 	whatsapp: {
 		displayNumber: "+86 18027418524",
