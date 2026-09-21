@@ -1493,11 +1493,7 @@ export default function Home() {
       return;
     }
 
-    const confirmed = window.confirm(
-      locale === "zh"
-        ? "确认清空当前材料清单吗？此操作会删除已填写的产品、规格和数量。"
-        : "Clear the current material list? This will remove the products, specifications and quantities you entered.",
-    );
+    const confirmed = window.confirm(m.actions.clearConfirm);
 
     if (confirmed) {
       setMaterialList({ modules: [] });
