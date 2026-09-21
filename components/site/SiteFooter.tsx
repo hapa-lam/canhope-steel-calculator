@@ -31,14 +31,14 @@ export function SiteFooter() {
             <a href="https://canhopesteel.com/products/">All Products</a>
             <a href="https://canhopesteel.com/products/pipes/">Pipes</a>
             <a href="https://canhopesteel.com/products/fire-fighting-pipe-fittings/">Fire Fighting Pipe Fittings</a>
-            <a href="https://canhopesteel.com/products/structural-steel-materials/">Structural Steel Materials</a>
+            <a href="https://canhopesteel.com/products/">Structural Steel Materials</a>
           </div>
         </div>
 
         <div>
           <p className="site-footer-title">Resources</p>
           <div className="site-footer-links">
-            <a href="https://canhopesteel.com/cases/project-cases/">Cases</a>
+            <a href="https://canhopesteel.com/cases/">Cases</a>
             <a href="https://canhopesteel.com/blogs-2/">Blogs</a>
             <a href="https://canhopesteel.com/faq/">FAQ</a>
             <Link href={calculatorPaths.pipeWeightCalculator}>Pipe Weight Calculator</Link>
