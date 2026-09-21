@@ -66,8 +66,8 @@ test("server-renders the CANHOPE steel calculator shell", async () => {
   assert.match(html, /<main\b[^>]*\bclass="[^"]*\bapp-shell\b/i);
   assert.match(html, /CANHOPE/i);
   assert.match(html, /<h1[^>]*>Steel Weight Calculator<\/h1>/i);
-  assert.match(html, /Theoretical Weight/i);
-  assert.match(html, /40HQ Estimate/i);
+  assert.match(html, /Estimated Total Weight/i);
+  assert.match(html, /40HQ Weight Capacity Check/i);
   assert.match(html, /canhopesteel\.com/i);
   assert.doesNotMatch(html, oldStarterPattern);
   assert.doesNotMatch(html, /info@conhopesteel\.com/i);
@@ -154,11 +154,11 @@ test("homepage and pipe page render the shared CANHOPE brand shell and protected
 
   for (const html of [homepage, pipePage]) {
     assert.match(html, /Steel Tools Center/i);
-    assert.match(html, /href="https:\/\/canhopesteel\.com\/"[^>]*target="_blank"[^>]*rel="noopener noreferrer"/i);
+    assert.match(html, /href="https:\/\/canhopesteel\.com\/"[^>]*>/i);
     assert.match(html, /src="\/canhope-logo\.png"[^>]*alt="CANHOPE STEEL logo"/i);
     assert.match(html, /Free steel calculation tools developed by/i);
     assert.match(html, /Built by Steel Industry Professionals/i);
-    assert.match(html, /© 2026 CANHOPE STEEL\. All rights reserved\./i);
+    assert.match(html, /© 2026 CanHopeSteel \| Guangdong Canhuang Steel Co\., Ltd\./i);
     assert.match(html, /href="\/"[^>]*>Full Steel Calculator<\/a>/i);
     assert.match(html, /href="\/pipe-weight-calculator\/"[^>]*>Pipe (?:Calculator|Weight Calculator)<\/a>/i);
     assert.doesNotMatch(html, /info@conhopesteel\.com|localhost|\/Users\/|\/private\//i);

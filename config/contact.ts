@@ -2,6 +2,7 @@ import { calculatorPaths } from "@/config/seo";
 
 export const contactConfig = {
   email: "info@canhopesteel.com",
+  projectQuoteUrl: "https://canhopesteel.com/contact/",
   wechat: {
     contactName: "Hapa Lam",
     searchPhoneNumber: "18027418524",

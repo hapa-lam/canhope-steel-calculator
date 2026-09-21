@@ -634,3 +634,318 @@ button {
     justify-self: center;
   }
 }
+
+
+/* CANHOPE main-site alignment for the Steel Tools Center shell */
+.primary-button:disabled,
+.secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+.site-shell-header {
+  position: relative;
+  z-index: 60;
+  border-bottom: 1px solid #dbe3ee;
+  background: #fff;
+  box-shadow: 0 2px 12px rgb(15 42 71 / 6%);
+}
+
+.site-primary-header {
+  display: flex;
+  min-height: 4.5rem;
+  max-width: 1500px;
+  margin: 0 auto;
+  align-items: center;
+  gap: 1.35rem;
+  padding: 0.7rem 1.5rem;
+}
+
+.site-brand {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.65rem;
+  color: #0e2a47;
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.site-brand img {
+  width: 2.55rem;
+  height: 2.55rem;
+  object-fit: contain;
+}
+
+.site-primary-nav {
+  display: flex;
+  min-width: 0;
+  margin-left: auto;
+  align-items: center;
+  gap: 1.05rem;
+  white-space: nowrap;
+}
+
+.site-primary-nav a,
+.tool-subnav-links a {
+  color: #334155;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.site-primary-nav a:hover,
+.tool-subnav-links a:hover {
+  color: #0e5f9f;
+}
+
+.site-quote-button {
+  flex: 0 0 auto;
+  text-decoration: none;
+}
+
+.tool-subnav {
+  display: flex;
+  min-height: 3rem;
+  align-items: center;
+  gap: 1.25rem;
+  border-top: 1px solid #eef2f7;
+  background: #f8fafc;
+  padding: 0.55rem max(1rem, calc((100vw - 1500px) / 2 + 1.5rem));
+}
+
+.tool-subnav-title {
+  color: #0e2a47;
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.tool-subnav-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tool-language-control {
+  display: flex;
+  margin-left: auto;
+  align-items: center;
+  gap: 0.35rem;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.tool-language-control button {
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  padding: 0.2rem;
+}
+
+.tool-language-control button.is-active,
+.tool-language-control button:hover {
+  color: #0e2a47;
+}
+
+.guide-panel {
+  display: grid;
+  gap: 0.8rem;
+  border: 1px solid #dbe3ee;
+  border-radius: 8px;
+  background: #fff;
+  padding: 0.9rem 1rem;
+  box-shadow: 0 8px 24px rgb(15 42 71 / 5%);
+}
+
+.guide-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guide-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  color: #475569;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.guide-steps li > span {
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: 0 0 1.5rem;
+  place-items: center;
+  border-radius: 999px;
+  background: #eaf2fa;
+  color: #0e5f9f;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.guide-steps p {
+  margin: 0;
+}
+
+.site-shell-footer {
+  margin-top: 2rem;
+  border-top: 1px solid #dbe3ee;
+  background: #fff;
+  color: #475569;
+}
+
+.site-footer-grid {
+  display: grid;
+  max-width: 1500px;
+  margin: 0 auto;
+  grid-template-columns: 1.35fr repeat(3, minmax(0, 1fr)) 1.2fr;
+  gap: 2rem;
+  padding: 2.5rem 1.5rem;
+}
+
+.site-footer-title {
+  margin: 0;
+  color: #0e2a47;
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.site-footer-about > p:not(.site-footer-title) {
+  margin: 0.75rem 0 0;
+  font-size: 0.87rem;
+  line-height: 1.65;
+}
+
+.site-footer-note {
+  color: #64748b;
+  font-weight: 700;
+}
+
+.site-footer-links {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.8rem;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.site-footer-links a {
+  color: #475569;
+  text-decoration: none;
+}
+
+.site-footer-links a:hover {
+  color: #0e5f9f;
+}
+
+.site-footer-quote {
+  margin-top: 1rem;
+  text-decoration: none;
+}
+
+.site-footer-bottom {
+  border-top: 1px solid #eef2f7;
+  padding: 1rem 1.5rem;
+  color: #64748b;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+@media (max-width: 1180px) {
+  .site-primary-header {
+    flex-wrap: wrap;
+  }
+
+  .site-primary-nav {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+  }
+
+  .site-footer-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .site-footer-about {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .site-primary-header {
+    min-height: auto;
+    gap: 0.75rem;
+    padding: 0.65rem 1rem;
+  }
+
+  .site-brand span {
+    display: none;
+  }
+
+  .site-brand img {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+
+  .site-quote-button {
+    margin-left: auto;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.78rem;
+  }
+
+  .site-primary-nav {
+    gap: 0.9rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .site-primary-nav a {
+    font-size: 0.78rem;
+  }
+
+  .tool-subnav {
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding: 0.55rem 1rem;
+  }
+
+  .tool-subnav-links {
+    gap: 0.75rem;
+  }
+
+  .tool-subnav-links a,
+  .tool-subnav-title {
+    font-size: 0.76rem;
+  }
+
+  .tool-language-control {
+    margin-left: 0;
+  }
+
+  .guide-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .site-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 1.6rem;
+    padding: 2rem 1rem;
+  }
+
+  .site-footer-about {
+    grid-column: auto;
+  }
+}
