@@ -8,12 +8,31 @@ import type { SummaryResult } from "@/types/materials";
 type WeightSummaryProps = {
   summary: SummaryResult;
   onOpenRfq: () => void;
+  canGenerateRfq: boolean;
   locale: Locale;
   m: Messages;
 };
 
-export function WeightSummary({ summary, onOpenRfq, locale, m }: WeightSummaryProps) {
+export function WeightSummary({
+  summary,
+  onOpenRfq,
+  canGenerateRfq,
+  locale,
+  m,
+}: WeightSummaryProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const rfqAction = (
+    <button
+      className="primary-button h-12"
+      type="button"
+      onClick={onOpenRfq}
+      disabled={!canGenerateRfq}
+      aria-disabled={!canGenerateRfq}
+    >
+      {m.summary.generateRfq}
+    </button>
+  );
 
   return (
     <footer className={`summary-bar ${isExpanded ? "is-expanded" : ""}`}>
@@ -24,7 +43,13 @@ export function WeightSummary({ summary, onOpenRfq, locale, m }: WeightSummaryPr
             {formatTonFromKg(summary.totalWeightKg, locale, m.notices.weightPending)}
           </p>
         </div>
-        <button className="primary-button summary-compact-rfq" type="button" onClick={onOpenRfq}>
+        <button
+          className="primary-button summary-compact-rfq"
+          type="button"
+          onClick={onOpenRfq}
+          disabled={!canGenerateRfq}
+          aria-disabled={!canGenerateRfq}
+        >
           {m.summary.generateRfq}
         </button>
         <button className="summary-toggle-button" type="button" onClick={() => setIsExpanded((current) => !current)}>
@@ -36,13 +61,11 @@ export function WeightSummary({ summary, onOpenRfq, locale, m }: WeightSummaryPr
         containerCount={summary.containerCount}
         remainingCapacityTon={summary.remainingCapacityTon}
         configuredLoadTon={CONTAINER_40HQ_TON}
+        totalWeightTon={summary.totalWeightTon}
+        missingWeightRowCount={summary.missingWeightRowCount}
         locale={locale}
         m={m}
-        action={
-          <button className="primary-button h-12" type="button" onClick={onOpenRfq}>
-            {m.summary.generateRfq}
-          </button>
-        }
+        action={rfqAction}
       >
         <SummaryItem label={m.summary.productCount} value={summary.productModuleCount} />
         <SummaryItem label={m.summary.validSpecRows} value={summary.validRowCount} />
@@ -50,7 +73,11 @@ export function WeightSummary({ summary, onOpenRfq, locale, m }: WeightSummaryPr
           label={m.summary.totalQuantity}
           value={formatSummaryQuantity(summary.totalQuantityPieces, summary.totalQuantityItems, locale)}
         />
-        <SummaryItem label={m.summary.theoreticalWeight} value={formatTonFromKg(summary.totalWeightKg, locale, m.notices.weightPending)} strong />
+        <SummaryItem
+          label={m.summary.theoreticalWeight}
+          value={formatTonFromKg(summary.totalWeightKg, locale, m.notices.weightPending)}
+          strong
+        />
         <SummaryItem
           label={m.summary.missingWeight}
           value={`${summary.missingWeightRowCount} ${m.summary.missingRowsSuffix}`}
@@ -82,10 +109,10 @@ function SummaryItem({
   );
 }
 
-function formatSummaryQuantity(totalLengths: number, totalItems: number, locale: Locale) {
+function formatSummaryQuantity(totalPieces: number, totalItems: number, locale: Locale) {
   if (locale === "zh") {
-    return `${formatQuantity(totalLengths, "支", locale)} / ${formatQuantity(totalItems, "件", locale)}`;
+    return `${formatQuantity(totalPieces, "支", locale)} / ${formatQuantity(totalItems, "件", locale)}`;
   }
 
-  return `${formatNumber(totalLengths, 0, locale)} lengths / ${formatNumber(totalItems, 0, locale)} items`;
+  return `${formatNumber(totalPieces, 0, locale)} pieces / ${formatNumber(totalItems, 0, locale)} items`;
 }
