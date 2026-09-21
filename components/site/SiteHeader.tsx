@@ -13,7 +13,7 @@ type SiteHeaderProps = {
 const mainSiteLinks = [
   { label: "Home", href: "https://canhopesteel.com/" },
   { label: "Products", href: "https://canhopesteel.com/products/" },
-  { label: "Cases", href: "https://canhopesteel.com/cases/project-cases/" },
+  { label: "Cases", href: "https://canhopesteel.com/cases/" },
   { label: "Blogs", href: "https://canhopesteel.com/blogs-2/" },
   { label: "FAQ", href: "https://canhopesteel.com/faq/" },
   { label: "About", href: "https://canhopesteel.com/about-us/" },
