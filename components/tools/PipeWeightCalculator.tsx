@@ -149,7 +149,7 @@ export function PipeWeightCalculator() {
           Standard Pipe Specification
         </button>
         <button className={mode === "custom" ? "primary-button" : "secondary-button"} type="button" onClick={() => setMode("custom")}>
-          Custom Pipe Size
+          Custom Black Welded Pipe
         </button>
       </div>
 
@@ -188,7 +188,7 @@ export function PipeWeightCalculator() {
 
       <div className="mt-7 rounded-lg bg-slate-50 p-5" data-testid="pipe-weight-results" aria-live="polite">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-bold text-slate-950">Theoretical weight estimate</h2>
+          <h2 className="text-lg font-bold text-slate-950">Estimated pipe weight</h2>
           {result ? <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Calculation ready</span> : null}
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -197,8 +197,14 @@ export function PipeWeightCalculator() {
           <Result label="Total Quantity" value={result ? `${formatNumber(numberOrZero(quantity), 0, "en")} pcs` : "—"} />
           <Result label="Total Weight in kg" value={result ? `${formatNumber(totalWeightKg, 2, "en")} kg` : "—"} />
           <Result label="Total Weight in metric tons" value={result ? `${formatNumber(totalWeightTon, 3, "en")} metric tons` : "—"} />
-          <Result label="Estimated 40HQ Containers" value={result ? `${container.containerCount}` : "—"} />
-          <Result label="Remaining Capacity" value={result && container.remainingCapacityTon !== null ? `${formatNumber(container.remainingCapacityTon, 2, "en")} t` : "—"} />
+          <Result
+            label="40HQ Weight Capacity Check"
+            value={result ? `Fits within ${container.containerCount} × 40HQ by weight` : "—"}
+          />
+          <Result
+            label="Unused Weight Capacity"
+            value={result && container.remainingCapacityTon !== null ? `${formatNumber(container.remainingCapacityTon, 2, "en")} t` : "—"}
+          />
         </div>
         <p className="mt-5 text-sm leading-6 text-slate-600" data-testid="pipe-40hq-note">
           The 40HQ result is a weight-based estimate only. Actual loading also depends on pipe length, bundle size, volume, packaging and local transport limits.
@@ -209,10 +215,11 @@ export function PipeWeightCalculator() {
         <h2 className="text-lg font-bold text-slate-950">Need Steel Pipes for Your Project?</h2>
         <p className="mt-1 text-sm leading-6 text-slate-700">After calculating the theoretical weight, review CANHOPE steel pipe specifications or send us the size, wall thickness, length and quantity for quotation.</p>
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <a className="secondary-button justify-center" href="https://canhopesteel.com/products/pipes/galvanized-pipe/" target="_blank" rel="noopener noreferrer">View Galvanized Steel Pipe</a>
-          <a className="secondary-button justify-center" href="https://canhopesteel.com/products/" target="_blank" rel="noopener noreferrer">Browse CANHOPE Products</a>
+          <a className="primary-button justify-center" href={contactConfig.projectQuoteUrl}>Continue to Project Enquiry</a>
+          <a className="secondary-button justify-center" href="https://canhopesteel.com/products/pipes/galvanized-pipe/">View Galvanized Steel Pipe</a>
+          <a className="secondary-button justify-center" href="https://canhopesteel.com/products/">Browse CANHOPE Products</a>
           <Link className="secondary-button justify-center" href={calculatorPaths.home}>Build a Multi-Product RFQ</Link>
-          <button className="primary-button justify-center" type="button" onClick={openWhatsApp}>WhatsApp</button>
+          <button className="secondary-button justify-center" type="button" onClick={openWhatsApp}>WhatsApp</button>
           <button className="secondary-button justify-center" type="button" onClick={openEmail}>Email</button>
         </div>
       </div>
