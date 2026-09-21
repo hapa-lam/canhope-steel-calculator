@@ -102,6 +102,7 @@ export const zh = {
     delete: "删除",
     deleteModule: "删除产品",
     clearAll: "清空清单",
+    clearConfirm: "确认清空当前材料清单吗？此操作会删除已填写的产品、规格和数量。",
     close: "关闭",
   },
   customSize: {
