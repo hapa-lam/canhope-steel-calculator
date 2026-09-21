@@ -103,6 +103,7 @@ export const en = {
     delete: "Delete",
     deleteModule: "Remove Product",
     clearAll: "Clear List",
+    clearConfirm: "Clear the current material list? This will remove the products, specifications and quantities you entered.",
     close: "Close",
   },
   customSize: {
