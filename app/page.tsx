@@ -1292,7 +1292,13 @@ export default function Home() {
 
       lines.push("");
       lines.push(`${m.summary.theoreticalWeight}: ${formatTonFromKg(summary.totalWeightKg, locale, m.notices.weightPending)}`);
-      lines.push(`${m.summary.containerEstimate}: ${summary.containerCount} × 40HQ`);
+      lines.push(
+        `${m.summary.containerEstimate}: ${
+          summary.containerCount > 0
+            ? `${summary.missingWeightRowCount > 0 ? m.summary.knownWeightsOnly : m.summary.byWeightOnly}: ${m.summary.fitsWithin} ${summary.containerCount} × 40HQ`
+            : m.summary.noLoadEntered
+        }`,
+      );
       if (summary.missingWeightRowCount > 0) {
         lines.push(`${m.summary.missingWeight}: ${summary.missingWeightRowCount} ${m.summary.missingRowsSuffix}`);
       }
@@ -1356,8 +1362,8 @@ export default function Home() {
     lines.push(
       `${m.summary.containerEstimate}：${
         summary.containerCount > 0
-          ? `${m.summary.estimated} ${summary.containerCount} × 40HQ`
-          : `${m.summary.estimated} 0 × 40HQ`
+          ? `${summary.missingWeightRowCount > 0 ? m.summary.knownWeightsOnly : m.summary.byWeightOnly}：${m.summary.fitsWithin} ${summary.containerCount} × 40HQ`
+          : m.summary.noLoadEntered
       }`,
     );
     if (summary.missingWeightRowCount > 0) {
