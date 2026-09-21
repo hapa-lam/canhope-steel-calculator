@@ -1238,6 +1238,7 @@ export default function Home() {
   }
 
   const summary = useMemo(() => calculateSummary(materialList), [materialList]);
+  const canGenerateRfq = summary.validRowCount > 0;
 
   const rfqText = useMemo(() => {
     if (locale === "en") {
@@ -1367,33 +1368,7 @@ export default function Home() {
     return lines.join("\n");
   }, [customer, locale, m, materialList, summary]);
 
-  function addProduct(productType: ProductType) {
-    setActiveProduct(productType);
-    setMaterialList((current) => {
-      const existing = current.modules.find((module) => module.productType === productType);
-
-      if (existing) {
-        return {
-          modules: current.modules.map((module) =>
-            module.productType === productType
-              ? { ...module, rows: [...module.rows, createEmptyRow(productType)] }
-              : module,
-          ),
-        };
-      }
-
-      return {
-        modules: [
-          ...current.modules,
-          {
-            id: createId("module"),
-            productType,
-            rows: [createEmptyRow(productType)],
-          },
-        ],
-      };
-    });
-
+  function scrollToProduct(productType: ProductType) {
     window.setTimeout(() => {
       moduleRefs.current[productType]?.scrollIntoView({
         behavior: "smooth",
@@ -1402,8 +1377,38 @@ export default function Home() {
     }, 80);
   }
 
+  function addProduct(productType: ProductType) {
+    setActiveProduct(productType);
+
+    if (materialList.modules.some((module) => module.productType === productType)) {
+      scrollToProduct(productType);
+      return;
+    }
+
+    setMaterialList((current) => ({
+      modules: [
+        ...current.modules,
+        {
+          id: createId("module"),
+          productType,
+          rows: [createEmptyRow(productType)],
+        },
+      ],
+    }));
+
+    scrollToProduct(productType);
+  }
+
   function addRow(productType: ProductType) {
-    addProduct(productType);
+    setActiveProduct(productType);
+    setMaterialList((current) => ({
+      modules: current.modules.map((module) =>
+        module.productType === productType
+          ? { ...module, rows: [...module.rows, createEmptyRow(productType)] }
+          : module,
+      ),
+    }));
+    scrollToProduct(productType);
   }
 
   function addCustomRow(productType: CustomSizeProductType) {
@@ -1484,7 +1489,19 @@ export default function Home() {
   }
 
   function clearAll() {
-    setMaterialList({ modules: [] });
+    if (materialList.modules.length === 0) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      locale === "zh"
+        ? "确认清空当前材料清单吗？此操作会删除已填写的产品、规格和数量。"
+        : "Clear the current material list? This will remove the products, specifications and quantities you entered.",
+    );
+
+    if (confirmed) {
+      setMaterialList({ modules: [] });
+    }
   }
 
   async function copyRfq() {
@@ -1512,6 +1529,20 @@ export default function Home() {
               <span key={item}>{item}</span>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-[1500px] px-4 pb-5 sm:px-6" aria-labelledby="calculator-guide-title">
+        <div className="guide-panel">
+          <p id="calculator-guide-title" className="text-sm font-bold text-slate-950">{m.guide.title}</p>
+          <ol className="guide-steps">
+            {m.guide.steps.map((step, index) => (
+              <li key={step}>
+                <span>{index + 1}</span>
+                <p>{step}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
@@ -1549,7 +1580,12 @@ export default function Home() {
               </h1>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <button className="secondary-button" type="button" onClick={clearAll}>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={clearAll}
+                disabled={materialList.modules.length === 0}
+              >
                 {m.actions.clearAll}
               </button>
             </div>
@@ -1586,7 +1622,13 @@ export default function Home() {
         </section>
       </section>
 
-      <WeightSummary summary={summary} onOpenRfq={() => setIsRfqOpen(true)} locale={locale} m={m} />
+      <WeightSummary
+        summary={summary}
+        onOpenRfq={() => setIsRfqOpen(true)}
+        canGenerateRfq={canGenerateRfq}
+        locale={locale}
+        m={m}
+      />
 
       <BrandTrustSection />
       <SiteFooter />
@@ -3668,7 +3710,10 @@ function RfqModal({
             </label>
             <textarea className="rfq-textarea" readOnly value={rfqText} />
             <div className="rfq-contact-actions" aria-label={m.inquiry.contactActions}>
-              <button className="primary-button justify-center py-3" type="button" onClick={openWhatsApp}>
+              <a className="primary-button justify-center py-3" href={contactConfig.projectQuoteUrl}>
+                {m.inquiry.projectQuoteContact}
+              </a>
+              <button className="secondary-button justify-center py-3" type="button" onClick={openWhatsApp}>
                 {m.inquiry.whatsappContact}
               </button>
               <button className="secondary-button justify-center py-3" type="button" onClick={openEmail}>
